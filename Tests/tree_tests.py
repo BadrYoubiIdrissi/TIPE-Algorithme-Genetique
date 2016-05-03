@@ -1,8 +1,3 @@
-import os
-
-os.
-
-
 from Source.Node import Node
 from Source.Tree import Tree
 import random as rand
@@ -23,17 +18,6 @@ def randomMonome():
     l.append(a)
     return Polynomial(l)
 
-def rp(tree):
-    if tree.isLeaf:
-        return tree.node
-    else:
-        if tree.node.symbol == '+':
-            return rp(tree.branches[0]) + rp(tree.branches[1])
-        elif tree.node.symbol == '*':
-            return rp(tree.branches[0]) * rp(tree.branches[1])
-        elif tree.node.symbol == '-':
-            return rp(tree.branches[0]) - rp(tree.branches[1])
-
 def re(tree,x):
     if tree.isLeaf:
         return tree.node(x)
@@ -50,7 +34,7 @@ def test():
     for j in range(10):
         for i in range(100):
             tree = Tree(5)
-            tree.genRand([Polynomial([1]),Polynomial([0,1])], [add,mult,sub], method = "full")
+            tree.genRand([Polynomial([1]),Polynomial([0,1])], [add,mult,sub], method = "grow")
             tree.updateTreeDepth()
             l[tree.depth] += 1
         l[j] /= 1000
