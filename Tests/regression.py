@@ -2,6 +2,7 @@ from numpy.polynomial import Polynomial
 from numpy import linspace
 import numpy as np
 import matplotlib.pyplot as plt
+
 def polLagrange(X,x):
     assert x in X
     lx = Polynomial([1])

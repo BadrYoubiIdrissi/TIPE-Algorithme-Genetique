@@ -34,7 +34,7 @@ def test():
     for j in range(10):
         for i in range(100):
             tree = Tree(5)
-            tree.genRand([Polynomial([1]),Polynomial([0,1])], [add,mult,sub], method = "grow")
+            tree.genRand([Polynomial([1]),Polynomial([0,1])], [add,mult,sub], method="grow")
             tree.updateTreeDepth()
             l[tree.depth] += 1
         l[j] /= 1000

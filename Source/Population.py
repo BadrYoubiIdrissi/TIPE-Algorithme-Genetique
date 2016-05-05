@@ -5,14 +5,16 @@ import random as rand
 
 
 class Population:
-    def __init__(self, size, termSet, funcSet, target):
+    def __init__(self, size, termSet = [], funcSet = []):
         self.size = size
-        self.termSet = termSet
-        self.funcSet = funcSet
-        self.target = target
-        self.oldGenerations = []
         self.currentGeneration = []
         self.generationCount = 0
+        self.termSet = termSet
+        self.funcSet = funcSet
+        self.target = None
+
+    def setTarget(self, target):
+        self.target = target
 
     def genRand(self, minIndvSize, maxIndvSize):
         self.generationCount = 0
@@ -21,9 +23,10 @@ class Population:
             if i % 2 == 0:
                 method = "full"
             else:
-                method = "full"
+                method = "grow"
             depth = minIndvSize + (i // 2) % (maxIndvSize + 1 - minIndvSize)  # Des profendeur cycliques selon l'indice de l'individu
-            randomInd = Individual(self)
+            randomInd = Individual(self.termSet, self.funcSet)
+            randomInd.setTarget(self.target)
             randomInd.genRand(depth, method)
             self.currentGeneration.append(randomInd)
 
@@ -97,6 +100,12 @@ class Population:
                 max = i
         return max
 
+    def bestCurrentFitness(self):
+        return self.bestIndividual(self.currentGeneration).fitness
+
+    def worstCurrentFitness(self):
+        return self.worstIndividual(self.currentGeneration).fitness
+
     def relFitness(self, ind):
         return ind.fitness / self.totalFitness()
 
@@ -136,10 +145,3 @@ class Population:
                 newGeneration.append(self.crossOver(parent1, parent2))
         self.generationCount += 1
         self.currentGeneration = newGeneration
-
-    def bestCurrentFitness(self):
-        return self.bestIndividual(self.currentGeneration).fitness
-    
-    def worstCurrentFitness(self):
-        return self.worstIndividual(self.currentGeneration).fitness
-
