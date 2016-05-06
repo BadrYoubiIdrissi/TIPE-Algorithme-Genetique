@@ -1,18 +1,18 @@
 from Source.Tree import Tree
 from Source.DefaultSet import DefaultSet
 from numpy import linspace
-from matplotlib.pyplot import plot,show
+from matplotlib.pyplot import plot
 from scipy.integrate import simps
 
 class Individual:
     """Implementation d'un individu exemple: ici un polynome"""
 
     def __init__(self, termSet = DefaultSet().termSet, funcSet = DefaultSet().funcSet):
-        self.termSet = termSet
-        self.funcSet = funcSet
+        self.tree = Tree()
         self.poly = None #L'attribut poly va contenir le polynome correspondant à l'arbre
         self.target = None
-        self.tree = Tree()
+        self.termSet = termSet
+        self.funcSet = funcSet
 
     def __repr__(self):
         # s = ""
@@ -66,12 +66,11 @@ class Individual:
     def setTarget(self,target):
         self.target = target
 
-    def showGraph(self):
+    def plotGraph(self):
         """Fonction tracant la courbe du polynome"""
         X = linspace(-1, 1, 100)
         Y = [self.evaluate(x) for x in X]
         plot(X, Y, label="Poly")
-        show()
 
     def showTree(self):
         """Fonction qui affiche l'arbre 
@@ -117,6 +116,6 @@ class Individual:
 
     def updateFitness(self):
         X = linspace(-1, 1, 50)
-        assert self.target != None, "target still not set"
-        Y = [abs(self.evaluate(x) - self.target(x)) for x in X]
-        self.fitness = -simps(Y, X)
+        self.fitness = 0
+        for x in X:
+            self.fitness -= abs(self.evaluate(x) - self.target(x))

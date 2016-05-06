@@ -4,9 +4,12 @@ import cProfile
 
 
 def test():
-    pop = Population(1000)
+    pop = Population(5)
     pop.setTarget(lambda x: x ** 2)
     pop.genRand(2,5)
+    pop.sortCurrentGeneration()
+    print(pop)
+    print(pop.tournamentSelection())
     #Distribution des profendeurs d'arbres :
     """
     X = [i for i in range(1, 1001)]
@@ -18,5 +21,6 @@ def test():
     plt.plot(X, Y)
     plt.show()
     """
+
 cProfile.run("test()")
 
