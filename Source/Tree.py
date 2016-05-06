@@ -19,6 +19,7 @@ class Tree:
             else:
                 return 0
         else:
+            self.updateDepth()
             return self.depth
 
     def isLeaf(self):
@@ -27,7 +28,7 @@ class Tree:
     def updateDepth(self):
         """Met à jour la profondeur d'un arbre (et de ses sous arbre) selon la feuille la plus profonde (utile pour la methode grow)"""
         def rupdateDepth(tree):
-            if tree.isLeaf:
+            if tree.isLeaf():
                 tree.depth = 0
                 return 0
             else:
@@ -51,13 +52,13 @@ class Tree:
                 # Si on est arrivé à la profendeur maximale on met une feuille
                 # Ou si la methode est Grow, on a une probabilité de long_s/(long_s+long_f) de choisir une feuille
                 tree.node = termSet[rand.randint(0, len(termSet) - 1)]
-                tree.isLeaf = True  # Cet arbre est donc forcement une feuille
             else:
                 # Sinon on choisi une fonction aléatoire qu'on met dans le noeud
                 tree.node = funcSet[rand.randint(0, len(funcSet) - 1)]
                 for i in range(tree.node.arity):
                     # Le nombre de branches est le nombre de prametres
                     subTree = Tree()
+                    subTree.depth = tree.depth - 1
                     # Les branches seront des sous arbres aleatoires de profendeur n-1
                     rgenRand(subTree)
                     tree.branches.append(subTree)
@@ -82,7 +83,7 @@ class Tree:
             randomBranch = self.branches[rand.randint(0, self.node.arity - 1)]
             return randomBranch.randomNode(depth - 1)
 
-    def randomSubTree(self, probLeaf=9e-2):  # To do : probabilités de selection 10% feuilles 90% noeuds
+    def randomSubTree(self, probLeaf=1e-1):  # To do : probabilités de selection 10% feuilles 90% noeuds
         """Fonction qui retourne un sous arbre aléatoire"""
         if self.isLeaf():
             return self
@@ -93,13 +94,17 @@ class Tree:
             return self.randomNode(rand_depth)
 
     def randomInsert(self, subTree):
-        troncature = self.randomSubTree()
-        troncature.node = subTree.node
-        troncature.isLeaf = subTree.isLeaf
-        if not subTree.isLeaf:
-            troncature.branches = subTree.branches
-        #self.updateTreeDepth()
+        troncature = self.randomSubTree(probLeaf=0)
+        troncature.branches[rand.randint(0,troncature.node.arity-1)] = subTree.copy()
 
     def copy(self):
-        ntree = Tree(tree.getDepth())
-        ntree.node =
+        def rc(tree):
+            if tree.isLeaf():
+                ntree = Tree(tree.node)
+            else:
+                nbranches = []
+                for i in range(tree.node.arity):
+                    nbranches.append(rc(tree.branches[i]))
+                ntree = Tree(tree.node, nbranches)
+            return ntree
+        return rc(self)

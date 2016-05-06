@@ -1,11 +1,12 @@
 from Source.Tree import Tree
 from Source.Individual import Individual
+from Source.DefaultSet import DefaultSet
 import copy
 import random as rand
 
 
 class Population:
-    def __init__(self, size, termSet = [], funcSet = []):
+    def __init__(self, size, termSet = DefaultSet().termSet, funcSet = DefaultSet().funcSet ):
         self.size = size
         self.currentGeneration = []
         self.generationCount = 0
