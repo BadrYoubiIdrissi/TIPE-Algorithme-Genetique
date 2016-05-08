@@ -1,25 +1,18 @@
 from Source.Tree import Tree
-from Source.Node import Node
+from Source.DefaultSet import DefaultSet
 from numpy import linspace
-from matplotlib.pyplot import plot,show
-from numpy.polynomial import Polynomial
+from matplotlib.pyplot import plot
 from scipy.integrate import simps
 
 class Individual:
     """Implementation d'un individu exemple: ici un polynome"""
 
-    def __init__(self, termSet = [], funcSet = []):
-        if termSet == [] or funcSet == []: #On initialise l'esmble des feuilles et des fonctions ç des valeurs par défaut
-            add = Node((lambda args: args[0] + args[1]), 2, '+')
-            sub = Node((lambda args: args[0] - args[1]), 2, '-')
-            mult = Node((lambda args: args[0] * args[1]), 2, '*')
-            self.termSet = [Polynomial([1]),Polynomial([0,1])]
-            self.funcSet = [add, sub, mult]
-        else:
-            self.termSet = termSet
-            self.funcSet = funcSet
+    def __init__(self, termSet = DefaultSet().termSet, funcSet = DefaultSet().funcSet):
+        self.tree = Tree()
         self.poly = None #L'attribut poly va contenir le polynome correspondant à l'arbre
         self.target = None
+        self.termSet = termSet
+        self.funcSet = funcSet
 
     def __repr__(self):
         # s = ""
@@ -30,9 +23,7 @@ class Individual:
         return self.poly.__str__()
 
     def genRand(self, depth, method="full"):
-        tree = Tree(depth)
-        tree.genRand(self.termSet, self.funcSet, method)
-        self.tree = tree
+        self.tree.genRand(depth,self.termSet, self.funcSet, method)
         self.toPoly()
         self.updateFitness()
 
@@ -57,7 +48,7 @@ class Individual:
 
     def toPoly(self):
         def rp(tree):
-            if tree.isLeaf:
+            if tree.isLeaf():
                 return tree.node
             else:
                 if tree.node.symbol == '+':
@@ -75,20 +66,19 @@ class Individual:
     def setTarget(self,target):
         self.target = target
 
-    def showGraph(self):
+    def plotGraph(self):
         """Fonction tracant la courbe du polynome"""
         X = linspace(-1, 1, 100)
         Y = [self.evaluate(x) for x in X]
         plot(X, Y, label="Poly")
-        show()
 
-    def showTree(self, showDepths=False):
+    def showTree(self):
         """Fonction qui affiche l'arbre 
             Exemple (+)
                     / \
                    1   2  correspond à ( + 1 , 2 )"""
         def rshow(tree):
-            if tree.isLeaf:
+            if tree.isLeaf():
                 # assert type(tree.node) != __main__.Node, "Shoudln't be a node"
                 print(' ', tree.node, end=' ')  # Si c'est une feuille ou si c'est une chaine de caractère spécial
             else:
@@ -125,7 +115,8 @@ class Individual:
         #     rinterpretTerm(self.tree)
 
     def updateFitness(self):
-        X = linspace(-1, 1, 50)
-        assert self.target != None, "target still not set"
-        Y = [abs(self.evaluate(x) - self.target(x)) for x in X]
-        self.fitness = -simps(Y, X)
+        X = linspace(-1, 1, 20)
+        assert self.target != None, "Target not set"
+        self.fitness = 0
+        for x in X:
+            self.fitness -= abs(self.evaluate(x) - self.target(x))

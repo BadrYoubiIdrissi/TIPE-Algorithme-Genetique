@@ -1,18 +1,28 @@
 from Source.Tree import Tree
 from Source.Individual import Individual
+from Source.DefaultSet import DefaultSet
 import copy
 import random as rand
 
 
 class Population:
-    def __init__(self, size, termSet, funcSet, target):
+    def __init__(self, size, termSet = DefaultSet().termSet, funcSet = DefaultSet().funcSet ):
         self.size = size
-        self.termSet = termSet
-        self.funcSet = funcSet
-        self.target = target
-        self.oldGenerations = []
         self.currentGeneration = []
         self.generationCount = 0
+        self.termSet = termSet
+        self.funcSet = funcSet
+        self.target = None
+    def __repr__(self):
+        s = ""
+        for e in self.currentGeneration:
+            s+="Ind : "+e.__repr__()
+            s+=" Fitness : "+str(e.fitness)
+            s+='\n'
+        return s
+
+    def setTarget(self, target):
+        self.target = target
 
     def genRand(self, minIndvSize, maxIndvSize):
         self.generationCount = 0
@@ -21,31 +31,12 @@ class Population:
             if i % 2 == 0:
                 method = "full"
             else:
-                method = "full"
+                method = "grow"
             depth = minIndvSize + (i // 2) % (maxIndvSize + 1 - minIndvSize)  # Des profendeur cycliques selon l'indice de l'individu
-            randomInd = Individual(self)
+            randomInd = Individual(self.termSet, self.funcSet)
+            randomInd.setTarget(self.target)
             randomInd.genRand(depth, method)
             self.currentGeneration.append(randomInd)
-
-    def crossOver(self, ind1, ind2):
-        """rand1 = rand.randint(0,self.size-1)
-        rand2 = rand.randint(0,self.size-1)
-        while rand2==rand1:
-            rand2 = rand.randint(0,self.size-1) #Pour avoir des individus distincs"""
-
-        child = Individual(self)
-        childTree = copy.deepcopy(ind2.tree)
-        childTree.randomInsert(ind1.tree.randomSubTree())
-        child.tree = childTree
-        child.updateFitness()
-        return child
-
-    def mutation(self):
-        random_indiv = self.currentGeneration[rand.randint(0, self.size - 1)]
-        mutation_indiv = Individual(self)
-        mutation_indiv.genRand(random_indiv.tree.depth)
-        random_indiv = self.crossOver(random_indiv, mutation_indiv)
-        return random_indiv
 
     def mergeSort(self, alist):
         """Algorithme de tri fusion : pris du site http://interactivepython.org/runestone/static/pythonds/SortSearch/TheMergeSort.html
@@ -62,7 +53,7 @@ class Population:
             j = 0
             k = 0
             while i < len(lefthalf) and j < len(righthalf):
-                if lefthalf[i].fitness < righthalf[j].fitness:
+                if lefthalf[i].fitness > righthalf[j].fitness:
                     alist[k] = lefthalf[i]
                     i = i + 1
                 else:
@@ -89,13 +80,19 @@ class Population:
             if i.fitness > max.fitness:
                 max = i
         return max
-    
+
     def worstIndividual(self, list):
         max = list[0]
         for i in list:
             if i.fitness < max.fitness:
                 max = i
         return max
+
+    def bestCurrentFitness(self):
+        return self.bestIndividual(self.currentGeneration).fitness
+
+    def worstCurrentFitness(self):
+        return self.worstIndividual(self.currentGeneration).fitness
 
     def relFitness(self, ind):
         return ind.fitness / self.totalFitness()
@@ -116,12 +113,42 @@ class Population:
             i += 1
         return self.currentGeneration[i - 1]
 
-    def tournamentSelection(self):
+    def tournamentSelection(self, nbCandidates=None, probBest=0.8):
         candidates = []
-        for i in range(2):
-            randInt = rand.randint(0, self.size-1)
+        if nbCandidates == None:
+            nbCandidates = rand.randint(1, self.size)
+        for i in range(nbCandidates):
+            randInt = rand.randint(0, self.size - 1)
             candidates.append(self.currentGeneration[randInt])
         return self.bestIndividual(candidates)
+        # self.mergeSort(candidates)
+        # randf = rand.random()
+        # n = len(candidates)
+        # s=0
+        # for i in range(n):
+        #     s += probBest * ((1 - probBest) ** (n - i - 1))
+        #     print(s)
+        #     if randf < s:
+        #         return candidates[n - i - 1]
+        # return candidates[0]
+
+    def crossOver(self, ind1, ind2):
+        child = Individual(self.termSet,self.funcSet)
+        childTree = ind2.tree.copy()
+        childTree.randomInsert(ind1.tree.randomSubTree())
+        child.tree = childTree
+        child.setTarget(self.target)
+        child.toPoly()
+        child.updateFitness()
+        return child
+
+    def mutation(self):
+        random_indiv = self.currentGeneration[rand.randint(0, self.size - 1)]
+        mutation_indiv = Individual(self.termSet, self.funcSet)
+        mutation_indiv.setTarget(self.target)
+        mutation_indiv.genRand(random_indiv.tree.depth)
+        random_indiv = self.crossOver(random_indiv, mutation_indiv)
+        return random_indiv
 
     def evolve(self):
         newGeneration = []
@@ -136,10 +163,3 @@ class Population:
                 newGeneration.append(self.crossOver(parent1, parent2))
         self.generationCount += 1
         self.currentGeneration = newGeneration
-
-    def bestCurrentFitness(self):
-        return self.bestIndividual(self.currentGeneration).fitness
-    
-    def worstCurrentFitness(self):
-        return self.worstIndividual(self.currentGeneration).fitness
-
