@@ -21,7 +21,16 @@ class Tree:
         else:
             self.updateDepth()
             return self.depth
-
+    def getMinDepth(self):
+        def rgetmd(tree):
+            if tree.isLeaf():
+                return 0
+            else:
+                depths = []
+                for i in range(tree.node.arity):
+                    depths.append(1 + rgetmd(tree.branches[i]))
+                return min(depths)
+        return rgetmd(self)
     def isLeaf(self):
         return self.branches == []
 
@@ -83,6 +92,13 @@ class Tree:
             randomBranch = self.branches[rand.randint(0, self.node.arity - 1)]
             return randomBranch.randomNode(depth - 1)
 
+    def randomNonLeafNode(self, depth):
+        if self.getMinDepth() == 1 or depth == 1:
+            return self
+        else:
+            randomBranch = self.branches[rand.randint(0, self.node.arity - 1)]
+            return randomBranch.randomNonLeafNode(depth - 1)
+
     def randomSubTree(self, probLeaf=1e-1):  # To do : probabilités de selection 10% feuilles 90% noeuds
         """Fonction qui retourne un sous arbre aléatoire"""
         if self.isLeaf():
@@ -94,9 +110,17 @@ class Tree:
             return self.randomNode(rand_depth)
 
     def randomInsert(self, subTree):
-        troncature = self.randomSubTree(probLeaf=0)
-        troncature.branches[rand.randint(0,troncature.node.arity-1)] = subTree.copy()
-
+        if self.isLeaf():
+            self.copyFrom(subTree)
+        else:
+            troncature = self.randomNonLeafNode(self.depth)
+            randBranche = rand.randint(0,troncature.node.arity-1)
+            troncature.branches[randBranche] = subTree.copy()
+    def copyFrom(self,subTree):
+        subc = subTree.copy()
+        self.node = subc.node
+        self.branches = subc.branches
+        self.depth = subc.depth
     def copy(self):
         def rc(tree):
             if tree.isLeaf():

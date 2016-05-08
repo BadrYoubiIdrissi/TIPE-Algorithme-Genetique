@@ -115,7 +115,8 @@ class Individual:
         #     rinterpretTerm(self.tree)
 
     def updateFitness(self):
-        X = linspace(-1, 1, 50)
+        X = linspace(-1, 1, 20)
+        assert self.target != None, "Target not set"
         self.fitness = 0
         for x in X:
             self.fitness -= abs(self.evaluate(x) - self.target(x))

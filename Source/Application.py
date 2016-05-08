@@ -47,25 +47,14 @@ class App(tk.Tk):
         self.statusLabel.grid(row=1, column=0, sticky="SEW")
 
     def onCreatePopulation(self, event):
-        add = Node((lambda args: args[0] + args[1]), 2, '+')
-        sub = Node((lambda args: args[0] - args[1]), 2, '-')
-        mult = Node((lambda args: args[0] * args[1]), 2, '*')
-
-        def divPro (args):
-            if args[1] == 0:
-                return 1
-            else:
-                return args[0]/args[1]
-        
-        div = Node(divPro, 2, '/')
-
         def target(x):
-            return x*x + 9*x + 56
+            return x**5+x**2+1
 
         self.status.set("Creating population ...")
         self.update()
-        self.population = Population(int(self.populationSize.get()), ['x', '@ rand int -5 5'], [add, sub, mult], target)
-        self.population.genRand(4, 8)
+        self.population = Population(int(self.populationSize.get()))
+        self.population.setTarget(target)
+        self.population.genRand(2, 5)
         self.status.set("Done.")
 
         self.evolveButton.configure(state="active")
@@ -124,11 +113,11 @@ class App(tk.Tk):
         self.update()
 
     def onShowBestIndividual(self):
-        print(self.population.bestIndividual(self.population.currentGeneration).poly_from_tree())
+        print(self.population.bestIndividual(self.population.currentGeneration))
         X = np.linspace(-1, 1, 100)
         Y = [self.population.target(x) for x in X]
         plt.plot(X, Y, label="Target", marker="o")
-        self.population.bestIndividual(self.population.currentGeneration).showGraph()
+        self.population.bestIndividual(self.population.currentGeneration).plotGraph()
         plt.show()
 
 app = App(None)

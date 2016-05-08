@@ -1,15 +1,21 @@
 from Source.Population import Population
 import matplotlib.pyplot as plt
 import cProfile
+from numpy import cos
 
+pop = Population(500)
+pop.setTarget(lambda x: x**3 + x + 1)
+pop.genRand(2,5)
 
 def test():
-    pop = Population(5)
-    pop.setTarget(lambda x: x ** 2)
-    pop.genRand(2,5)
-    pop.sortCurrentGeneration()
-    print(pop)
-    print(pop.tournamentSelection())
+    c=0
+    while pop.bestCurrentFitness() < -1e-2 and c < 5:
+        pop.evolve()
+        c+=1
+    print(c)
+    print(pop.bestIndividual(pop.currentGeneration))
+    print(pop.bestCurrentFitness())
+
     #Distribution des profendeurs d'arbres :
     """
     X = [i for i in range(1, 1001)]

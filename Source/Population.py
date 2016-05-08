@@ -120,28 +120,32 @@ class Population:
         for i in range(nbCandidates):
             randInt = rand.randint(0, self.size - 1)
             candidates.append(self.currentGeneration[randInt])
-        self.mergeSort(candidates)
-        randf = rand.random()
-        n = len(candidates)
-        s=0
-        for i in range(n):
-            s += probBest * ((1 - probBest) ** (n - i - 1))
-            print(s)
-            if randf < s:
-                return candidates[n - i -1]
-        return candidates[0]
+        return self.bestIndividual(candidates)
+        # self.mergeSort(candidates)
+        # randf = rand.random()
+        # n = len(candidates)
+        # s=0
+        # for i in range(n):
+        #     s += probBest * ((1 - probBest) ** (n - i - 1))
+        #     print(s)
+        #     if randf < s:
+        #         return candidates[n - i - 1]
+        # return candidates[0]
 
     def crossOver(self, ind1, ind2):
         child = Individual(self.termSet,self.funcSet)
         childTree = ind2.tree.copy()
         childTree.randomInsert(ind1.tree.randomSubTree())
         child.tree = childTree
+        child.setTarget(self.target)
+        child.toPoly()
         child.updateFitness()
         return child
 
     def mutation(self):
         random_indiv = self.currentGeneration[rand.randint(0, self.size - 1)]
-        mutation_indiv = Individual(self)
+        mutation_indiv = Individual(self.termSet, self.funcSet)
+        mutation_indiv.setTarget(self.target)
         mutation_indiv.genRand(random_indiv.tree.depth)
         random_indiv = self.crossOver(random_indiv, mutation_indiv)
         return random_indiv

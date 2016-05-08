@@ -55,7 +55,7 @@ def showTree(tree):
 
 def test():
     tr = Tree()
-    tr.genRand(2, [Polynomial([1]),Polynomial([0,1])], [add,mult,sub])
+    tr.genRand(3, [Polynomial([1]),Polynomial([0,1])], [add,mult,sub], method="grow")
     # l = []
     # X = [i for i in range(5000)]
     # Y = []
