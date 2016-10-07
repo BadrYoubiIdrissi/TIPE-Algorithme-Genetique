@@ -5,7 +5,7 @@ Created on Wed Sep 28 10:56:54 2016
 @author: Thomas Guilmeau
 """
 
-class Gene(object) :
+class Noeud(object) :
     
     """
     Un gène peut être une entrée, la sortie ou un gène intermédiaire (hidden gene)
