@@ -2,7 +2,7 @@
 """
 Created on Wed Sep 28 10:56:54 2016
 
-@author: Profs&Eleves
+@author: Thomas Guilmeau
 """
 
 class Gene(object) :
