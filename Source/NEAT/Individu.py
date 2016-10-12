@@ -22,12 +22,12 @@ class Individu :
     def __init__(self, nb_entree, nb_sortie):
         self.nb_entree = nb_entree
         l_entrees = []
-        for i in (nb_entree):
+        for i in range(nb_entree):
             l_entrees.append(Gene(i, "entree"))
         self.entrees = l_entrees
         
         l_sorties = []
-        for i in (nb_sortie):
+        for i in range(nb_sortie):
             l_sorties.append(Gene(nb_entree + i, "sortie"))
         self.sorties = l_sorties
         
@@ -37,7 +37,7 @@ class Individu :
         self.genes = l_genes
         
         l_connexions = []
-        for i in (nb_entree):
+        for i in range(nb_entree):
             for j in (nb_sortie):
                 l_connexions.append(Connexion(i,j,1.0,0))
         self.connexions = l_connexions
