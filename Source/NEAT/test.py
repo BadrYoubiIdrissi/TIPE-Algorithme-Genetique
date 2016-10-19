@@ -17,6 +17,14 @@ clock = pygame.time.Clock()
 FPS = 60
 
 g = Genome(4, 2, generer = True)
+g.node_mutation()
+g.node_mutation()
+g.node_mutation()
+g.node_mutation()
+g.node_mutation()
+g.node_mutation()
+g.node_mutation()
+
 
 while True:
     screen.fill((255,255,255))
@@ -24,5 +32,5 @@ while True:
         if event.type == QUIT:
             pygame.quit()
             exit()
-    g.draw(20,20)
+    g.draw(200,200)
     pygame.display.flip()

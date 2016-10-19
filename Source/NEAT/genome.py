@@ -32,7 +32,7 @@ class Genome():
                 self.noeuds.append(Noeud(i, "sortie"))
             
             for i in range(self.nb_entree):
-                for j in range(self.nb_sortie):
+                for j in range(self.nb_entree, self.nb_entree + self.nb_sortie):
                     self.indiceInnov += 1
                     self.connexions.append(Connexion(i,j,norm.rvs(),self.indiceInnov))
     
@@ -49,7 +49,7 @@ class Genome():
                 c.poids  += 0.1*norm.rvs()
                 
     def node_mutation(self):
-        connex_alea = random.sample(self.connexions,1)
+        connex_alea = random.sample(self.connexions,1)[0]
         connex_alea.activation = False
         
         noeud = Noeud(len(self.noeuds)+1, "cache")
@@ -75,13 +75,29 @@ class Genome():
     def draw(self, x, y):
         screen = pygame.display.get_surface()
         i = 0
-        j = 0 
+        j = 0
+        layer = 1
+        nbNodesInLay = 0
+        nodePos = {}
+        sign = lambda a: int(a<0)
         for n in self.noeuds:
             if n.fonction == "entree":
-                pygame.draw.circle(screen, (0,255,0), (x+30*i,y), 10)
+                nodePos[n.id] = (int((x-self.nb_entree*30)/2+30*i),y)
                 i += 1
-            elif n.fonction == "sortie":
-                pygame.draw.circle(screen, (0,0,255), (x+30*j,y+100), 10)
+            
+            else:
+                nbNodesInLay += 1
+                if nbNodesInLay >= 4:
+                    layer += 1
+                    j = 0
+                nodePos[n.id] = (int((x-nbNodesInLay*30)/2+30*j), y+(layer)*100)
+        j = 0
+        for n in self.noeuds:
+            if n.fonction == "sortie":
+                nodePos[n.id] = (int((x-self.nb_sortie*30)/2+30*j),y+(layer+1)*100)
                 j += 1
-
                 
+        for c in self.connexions:
+            pygame.draw.line(screen, (255*sign(c.poids),0,0), nodePos[c.entree], nodePos[c.sortie], 1+int(2*abs(c.poids)))
+            pygame.draw.circle(screen, (0,255,0), nodePos[c.entree] , 10)
+            pygame.draw.circle(screen, (0,0,255), nodePos[c.sortie] , 10)
