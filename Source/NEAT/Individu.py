@@ -5,12 +5,12 @@ Created on Wed Sep 28 10:59:47 2016
 @author: Profs&Eleves
 """
 from Connexion import Connexion
-from Gene import Gene
+from Noeud import Noeud
 from math import exp
 from copy import copy
 
 
-class Individu :
+class Individu(object) :
     
     """
     Un individu est constitué d'un nombre d'entrées, non nul, et d'un contenu.
@@ -23,28 +23,28 @@ class Individu :
         self.nb_entree = nb_entree
         l_entrees = []
         for i in range(nb_entree):
-            l_entrees.append(Gene(i, "entree"))
+            l_entrees.append(Noeud(i, "entree"))
         self.entrees = l_entrees
         
         l_sorties = []
         for i in range(nb_sortie):
-            l_sorties.append(Gene(nb_entree + i, "sortie"))
+            l_sorties.append(Noeud(nb_entree + i, "sortie"))
         self.sorties = l_sorties
         
-        l_genes = []
+        l_noeuds = []
         for i in self.sorties :
-            l_genes.append(i)
-        self.genes = l_genes
+            l_noeuds.append(i)
+        self.noeuds = l_noeuds
         
         l_connexions = []
         for i in range(nb_entree):
-            for j in (nb_sortie):
+            for j in range (nb_sortie):
                 l_connexions.append(Connexion(i,j,1.0,0))
         self.connexions = l_connexions
                 
     #Reflechir au numéro d'innovation ?    
     
-        def eval(self, numero, val_entree):
+        def eval_part(self, numero, val_entree):
             """
             Cette fonction est une fonction intermédiaire récursive qui évalue la valeur à la sortie de n'importre quel noeud, en prenant comme argument une liste de valeurs, une par entrée
             Cette fonction utilise des principes de programmation dynamique : une foisque la valeur en un noeud est calculée, on la stocke dans l'attributvaleur
@@ -53,13 +53,13 @@ class Individu :
             assert len(val_entree) == indiv.nb_entree
             
             if numero <= indiv.nb_entree :
-                return val_entree.numero
+                return val_entree[numero]
                 
             else :  
                 l =[]
                 for i in self.connexions :
                     if i.sortie == numero :
-                        for j in self.genes:
+                        for j in self.noeuds:
                             if j.id == i.entree :
                                 l.append([i,j])
                 sum = 0
@@ -68,7 +68,7 @@ class Individu :
                     j=k[1]
                     
                     if j.valeur == None :
-                        j.valeur = eval(self, j.id, val_entree)
+                        j.valeur = eval_part(self, j.id, val_entree)
                         
                     sum = sum + (i.poids)*(j.valeur)
                     
@@ -86,7 +86,7 @@ class Individu :
             
             l_sorties= []
             for j in self.sorties :
-                l_sorties.append(eval(self,j, val_entrees))
+                l_sorties.append(eval_part(self,j, val_entrees))
                 
             return l_sorties
                 
