@@ -4,7 +4,7 @@ Created on Wed Sep 28 10:59:47 2016
 
 @author: Profs&Eleves
 """
-from Connexion import Connexion
+from connexion import Connexion
 from Noeud import Noeud
 from math import exp
 from copy import copy
@@ -39,56 +39,55 @@ class Individu(object) :
         l_connexions = []
         for i in range(nb_entree):
             for j in range (nb_sortie):
-                l_connexions.append(Connexion(i,j,1.0,0))
+                l_connexions.append(Connexion(i,j,1,0))
         self.connexions = l_connexions
                 
     #Reflechir au numéro d'innovation ?    
     
-        def eval_part(self, numero, val_entree):
-            """
-            Cette fonction est une fonction intermédiaire récursive qui évalue la valeur à la sortie de n'importre quel noeud, en prenant comme argument une liste de valeurs, une par entrée
-            Cette fonction utilise des principes de programmation dynamique : une foisque la valeur en un noeud est calculée, on la stocke dans l'attributvaleur
-            """
-            
-            assert len(val_entree) == indiv.nb_entree
-            
-            if numero <= indiv.nb_entree :
-                return val_entree[numero]
-                
-            else :  
-                l =[]
-                for i in self.connexions :
-                    if i.sortie == numero :
-                        for j in self.noeuds:
-                            if j.id == i.entree :
-                                l.append([i,j])
-                sum = 0
-                for k in l:
-                    i= k[0]
-                    j=k[1]
-                    
-                    if j.valeur == None :
-                        j.valeur = eval_part(self, j.id, val_entree)
-                        
-                    sum = sum + (i.poids)*(j.valeur)
-                    
-            return 1/(1+exp(-sum))
-            
+    def eval_part(self, numero, val_entree):
+        """
+        Cette fonction est une fonction intermédiaire récursive qui évalue la valeur à la sortie de n'importre quel noeud, en prenant comme argument une liste de valeurs, une par entrée
+        Cette fonction utilise des principes de programmation dynamique : une foisque la valeur en un noeud est calculée, on la stocke dans l'attributvaleur
+        """
         
-        def evaluation(self, val_entree):
-            """
-            Cettefonction utilise la fonction eval intermédiaire, appliquée en chacun desgènes de sortie.
-            On réinitialise au début de chaque calcul les valeurs des noeuds pour éviter des restes de calculs précédents
-            """
+        assert len(val_entree) == self.nb_entree
+        
+        if numero < self.nb_entree :
+            return val_entree[numero]
             
-            for i in self.genes:
-                i.valeur = None
-            
-            l_sorties= []
-            for j in self.sorties :
-                l_sorties.append(eval_part(self,j, val_entrees))
+        else :  
+            l =[]
+            for i in self.connexions :
+                for j in self.noeuds :
+                    if i.sortie == numero and j.id == i.entree :
+                        l.append([i,j])
+            sum = 0
+            for k in l:
+                i= k[0]
+                j=k[1]
                 
-            return l_sorties
+                if j.valeur == None :
+                    j.valeur = self.eval_part(j.id, val_entree)
+                    
+                sum = sum + (i.poids)*(j.valeur)
+            
+            return (1/(1+exp(-sum)), sum)
+        
+    
+    def evaluation(self, val_entree):
+        """
+        Cettefonction utilise la fonction eval intermédiaire, appliquée en chacun desgènes de sortie.
+        On réinitialise au début de chaque calcul les valeurs des noeuds pour éviter des restes de calculs précédents
+        """
+        
+        for i in self.noeuds:
+            i.valeur = None
+        
+        l_sorties= []
+        for j in self.sorties :
+            l_sorties.append(self.eval_part(j.id, val_entree))
+            
+        return l_sorties
                 
                     
         
