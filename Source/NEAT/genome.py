@@ -76,28 +76,23 @@ class Genome():
         screen = pygame.display.get_surface()
         i = 0
         j = 0
-        layer = 1
-        nbNodesInLay = 0
+        k = 0
         nodePos = {}
         sign = lambda a: int(a<0)
         for n in self.noeuds:
             if n.fonction == "entree":
-                nodePos[n.id] = (int((x-self.nb_entree*30)/2+30*i),y)
-                i += 1
-            
-            else:
-                nbNodesInLay += 1
-                if nbNodesInLay >= 4:
-                    layer += 1
-                    j = 0
-                nodePos[n.id] = (int((x-nbNodesInLay*30)/2+30*j), y+(layer)*100)
-        j = 0
+                nodePos[n.id] = (x+50*i,y)
+                i += 1         
+            elif n.fonction == "cache":
+                nodePos[n.id] = ((x + 50*j), y+((j//3)+1)*100)
+                j+=1
         for n in self.noeuds:
             if n.fonction == "sortie":
-                nodePos[n.id] = (int((x-self.nb_sortie*30)/2+30*j),y+(layer+1)*100)
-                j += 1
+                nodePos[n.id] = ((x + 50*k),y+((j//3)+2)*100)
+                k += 1
                 
         for c in self.connexions:
-            pygame.draw.line(screen, (255*sign(c.poids),0,0), nodePos[c.entree], nodePos[c.sortie], 1+int(2*abs(c.poids)))
-            pygame.draw.circle(screen, (0,255,0), nodePos[c.entree] , 10)
-            pygame.draw.circle(screen, (0,0,255), nodePos[c.sortie] , 10)
+            if c.activation:
+                pygame.draw.line(screen, (255*sign(c.poids),0,0), nodePos[c.entree], nodePos[c.sortie], 1+int(2*abs(c.poids)))
+                pygame.draw.circle(screen, (0,255,0), nodePos[c.entree] , 10)
+                pygame.draw.circle(screen, (0,0,255), nodePos[c.sortie] , 10)

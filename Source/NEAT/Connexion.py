@@ -22,3 +22,5 @@ class Connexion(object):
         self.activation = True
         
     
+    def __repr__(self):
+        return "Entrée : "+ str(self.entree)
