@@ -23,4 +23,4 @@ class Connexion(object):
         
     
     def __repr__(self):
-        return "Entrée : "+ str(self.entree)
+        return "Entree : " + str(self.entree)+ " Sortie : " + str(self.sortie) + '\n'

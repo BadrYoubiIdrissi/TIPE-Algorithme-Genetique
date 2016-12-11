@@ -15,6 +15,7 @@ from connexion import Connexion
 from noeud import Noeud
 import random
 import pygame
+from math import *
 
 class Genome():
     def __init__(self, *args, **kwargs):
@@ -23,23 +24,80 @@ class Genome():
             self.nb_sortie = args[1]
             self.indiceInnov = 0
             self.noeuds = []
+            self.entr = []
+            self.sort = []
             self.connexions = []            
             
             for i in range(self.nb_entree):
-                self.noeuds.append(Noeud(i, "entree"))
+                e = Noeud(i, "entree")
+                self.noeuds.append(e)
+                self.entr.append(e)
             
             for i in range(self.nb_entree,self.nb_entree + self.nb_sortie):
-                self.noeuds.append(Noeud(i, "sortie"))
+                s = Noeud(i, "sortie")
+                self.noeuds.append(s)
+                self.sort.append(s)
             
             for i in range(self.nb_entree):
                 for j in range(self.nb_entree, self.nb_entree + self.nb_sortie):
                     self.indiceInnov += 1
                     self.connexions.append(Connexion(i,j,norm.rvs(),self.indiceInnov))
-    
+            
         else:
             self.connexions = args[0]
             self.noeuds = args[1]
             self.indiceInnov = len(self.noeuds)    
+            
+    def __add__(self, mate):
+        pass
+    
+    def eval_part(self, numero, val_entree):
+        """
+        Cette fonction est une fonction intermédiaire récursive qui évalue la valeur à la sortie de n'importre quel noeud, en prenant comme argument une liste de valeurs, une par entrée
+        Cette fonction utilise des principes de programmation dynamique : une foisque la valeur en un noeud est calculée, on la stocke dans l'attributvaleur
+        """
+        
+        assert len(val_entree) == self.nb_entree
+        
+        if numero < self.nb_entree :
+            return val_entree[numero]
+            
+        else :  
+            l =[]
+            for i in self.connexions :
+                if i.sortie == numero:
+                    for j in self.noeuds :
+                         if j.id == i.entree :
+                            l.append([i,j])
+            som = 0
+            for k in l:
+                i= k[0]
+                j=k[1]
+                
+                if j.valeur == None :
+                    j.valeur = self.eval_part(j.id, val_entree)
+                
+                print((i.poids)*(j.valeur))
+                som = som + (i.poids)*(j.valeur)
+            
+            return (1/(1+exp(-som)))
+        
+    
+    def evaluation(self, val_entree):
+        """
+        Cettefonction utilise la fonction eval intermédiaire, appliquée en chacun desgènes de sortie.
+        On réinitialise au début de chaque calcul les valeurs des noeuds pour éviter des restes de calculs précédents
+        """
+        
+        for i in self.noeuds:
+            if i.fonction != "entree":
+                i.valeur = None
+        
+        l_sorties= []
+        for j in self.sort:
+            l_sorties.append(self.eval_part(j.id, val_entree))
+            
+        return l_sorties
             
     def weight_mutation(self):
         for c in self.connexions:
@@ -65,34 +123,18 @@ class Genome():
         self.noeuds.append(noeud)
         self.connexions.append(con1)
         self.connexions.append(con2)
+        
+        x1,y1 = self.nodePos[entree]
+        x2,y2 = self.nodePos[sortie]
+        
+        self.nodePos[noeud.id] = (int((x1+x2)/2),int((y1+y2)/2))
     
     def connection_mutation(self):
         entree = random.randint(0,len(self.noeuds)-1)
-        sortie = random.randint(entree+1, self.len(self.noeuds)-1)
+        sortie = random.randint(entree+1, len(self.noeuds)-1)
         self.indiceInnov += 1
         self.connexions.append(Connexion(entree, sortie, norm.rvs(), self.indiceInnov))
-    
-    def draw(self, x, y):
-        screen = pygame.display.get_surface()
-        i = 0
-        j = 0
-        k = 0
-        nodePos = {}
-        sign = lambda a: int(a<0)
-        for n in self.noeuds:
-            if n.fonction == "entree":
-                nodePos[n.id] = (x+50*i,y)
-                i += 1         
-            elif n.fonction == "cache":
-                nodePos[n.id] = ((x + 50*j), y+((j//3)+1)*100)
-                j+=1
-        for n in self.noeuds:
-            if n.fonction == "sortie":
-                nodePos[n.id] = ((x + 50*k),y+((j//3)+2)*100)
-                k += 1
-                
-        for c in self.connexions:
-            if c.activation:
-                pygame.draw.line(screen, (255*sign(c.poids),0,0), nodePos[c.entree], nodePos[c.sortie], 1+int(2*abs(c.poids)))
-                pygame.draw.circle(screen, (0,255,0), nodePos[c.entree] , 10)
-                pygame.draw.circle(screen, (0,0,255), nodePos[c.sortie] , 10)
+            
+            
+            
+            

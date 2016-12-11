@@ -16,3 +16,4 @@ class Noeud(object) :
         
         self.id = id
         self.fonction = fonction
+        self.valeur = None
