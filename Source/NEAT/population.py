@@ -2,7 +2,7 @@
 """
 Created on Wed Nov 23 10:47:29 2016
 
-@author: eleve
+@author: Thomas Guilmeau
 """
 
 from genome import Genome
