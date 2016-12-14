@@ -18,7 +18,7 @@ pygame.display.set_caption("Test")
 clock = pygame.time.Clock()
 FPS = 60
 
-i = Individu(4,2)
+i = Individu(2,1)
 
 while True:
     clock.tick()
@@ -28,8 +28,10 @@ while True:
             pygame.quit()
             exit()
         elif event.type == KEYDOWN and event.key == K_SPACE:
-            i.add_node(0,4, 1, 1)
-        
-    i.phenotype.eval(np.sin(pygame.time.get_ticks()*np.ones((4,1))/1000))
+            i.add_node(0, 2, 1, 1)
+            
     i.phenotype.draw((500,200))
     pygame.display.flip()
+    cou = i.phenotype.couches
+    lie = i.phenotype.liens
+ 

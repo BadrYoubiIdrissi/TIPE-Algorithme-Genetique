@@ -29,20 +29,26 @@ class Individu():
     def add_node(self, k,l, p1, p2):
         c1, n1 = self.idToPos[k]
         c2, n2 = self.idToPos[l]
+        print(c1,n1)
+        print(c2,n2)
         if abs(c1-c2) >= 2:
             m = (c1+c2)//2
             p = len(self.phenotype.couches[m])+1
-            self.idToPos.append(m, p)
+            self.idToPos.append((m, p))
+            nc = np.zeros_like
+            self.phenotype.couches[m] = np.append(self.phenotype.couches[m],[[0]],1)
             for i in range(len(self.phenotype.couches)):
-                M = self.phenotype.liens[i][m]
-                if M != 0:
-                    n,h = M.shape
-                    self.phenotype.liens[m][i] = np.c_[self.phenotype.liens[m][i], np.zeros(n,1)]
-                    self.phenotype.liens[i][m] = np.r_[self.phenotype.liens[m][i], np.zeros(1, h+1)]
-
-            self.phenotype.couches[m] = np.append(self.phenotype.couches[m],0)
-            self.phenotype.liens[c1][m][p,n1] = p1
-            self.phenotype.liens[m][c2][n2,p] = p2
+                if type(self.phenotype.liens[m][i]) != int and type(self.phenotype.liens[i][m]) != int:
+                    n1,h1 = self.phenotype.liens[m][i].shape
+                    n2,h2 = self.phenotype.liens[i][m].shape
+                    self.phenotype.liens[m][i] = np.c_[self.phenotype.liens[m][i], np.zeros((n1,1))]
+                    self.phenotype.liens[i][m] = np.r_[self.phenotype.liens[i][m], np.zeros((1, h2+1))]
+                else:
+                    self.phenotype.liens[m][i] = np.zeros((len(self.phenotype.couches[i]),len(self.phenotype.couches[m])))
+                    self.phenotype.liens[m][i] = np.zeros((len(self.phenotype.couches[m]),len(self.phenotype.couches[i])))
+                    
+            self.phenotype.liens[c1][m][p-1,n1] = p1
+            self.phenotype.liens[m][c2][n2,p-1] = p2
 
         else:
             c = min(c1,c2)
@@ -50,13 +56,18 @@ class Individu():
                 if self.idToPos[i][0] > c:
                     n, h = self.idToPos[i]
                     self.idToPos[i] = (n+1,h)
+            c1, n1 = self.idToPos[k]
+            c2, n2 = self.idToPos[l]
             for e in self.phenotype.liens:
                 e.insert(c+1,0)
             self.phenotype.couches.insert(c+1, np.zeros((1,1)))
             self.phenotype.liens.insert(c+1, [0 for i in range(len(self.phenotype.couches))])
-            self.phenotype.liens[c1][c+1] = np.matrix((1,len(self.phenotype.couches[c1])))
-            self.phenotype.liens[c+1][c1] = np.matrix((len(self.phenotype.couches[c1]),1))
-            lie = self.phenotype.liens
+            self.phenotype.liens[c1][c+1] = np.zeros((1,len(self.phenotype.couches[c1])))
+            if c1 > 0:
+                self.phenotype.liens[c+1][c1] = np.mat(np.zeros((len(self.phenotype.couches[c1]),1)))
+                
             self.phenotype.liens[c1][c+1][0,n1] = p1
-            self.phenotype.liens[c+1][c2][n2,0] = p2
+            if c2 > 0:            
+                self.phenotype.liens[c+1][c2] = np.mat(np.zeros((len(self.phenotype.couches[c2]),1)))
+                self.phenotype.liens[c+1][c2][n2,0] = p2
                 

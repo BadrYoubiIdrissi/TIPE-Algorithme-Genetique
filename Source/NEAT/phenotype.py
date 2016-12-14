@@ -41,12 +41,13 @@ class Phenotype(object):
         for j in range(1,n): #Oncalcule la couches numero j
             c=np.zeros(self.couches[j].shape) #Cette liste vacontenir les valeurs provenant de l'instant d'avant, pour ne pasmodifier les couches existantes
             for i in range(j,n): #On calcule les éléments provenant de liens récursifs, à l'instant précédent.
-                a = self.liens[i][j]*self.couches[i]
-                c += a
+                c += self.liens[i][j]*self.couches[i]
                
             for i in range(j): #on calcule leséléments du même instant, qui vienne du dessous de l'arbre
                 c += self.liens[i][j]*self.couches[i]
-                
+                print(self.liens[i][j],self.couches[i])
+            
+            print(c)
                 
             self.couches[j] = c #On somme les deux contributions
             self.couches[j] = sigmoide(self.couches[j])
