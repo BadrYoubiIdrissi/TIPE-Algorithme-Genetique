@@ -13,10 +13,11 @@ import random as rd
 class Population():
     
     def __init__(self, length):
-        assert (length <=0)
         self.length = length
         self.contenu = []
+        self.noeuds = []
         self.generationCount = 0
+        self.indiceInnovation = 0
         
     def genrand(self, max, nb_entr, nb_sort):
         for i in range (self.length):

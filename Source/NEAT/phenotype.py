@@ -22,8 +22,8 @@ class Phenotype(object):
         self.nb_entrees = nb_entrees
         self.nb_sorties = nb_sorties
         
-        self.liens = [[0, np.ones((nb_sorties, nb_entrees))],
-                      [0, np.zeros((nb_sorties, nb_entrees))]]
+        self.liens = [[0, np.mat(np.ones((nb_sorties, nb_entrees)))],
+                      [0, np.mat(np.zeros((nb_sorties, nb_sorties)))]]
         self.couches= [np.zeros((nb_entrees, 1)), np.zeros((nb_sorties, 1))]
                        
         self.noeuds = []
@@ -41,7 +41,8 @@ class Phenotype(object):
         for j in range(1,n): #Oncalcule la couches numero j
             c=np.zeros(self.couches[j].shape) #Cette liste vacontenir les valeurs provenant de l'instant d'avant, pour ne pasmodifier les couches existantes
             for i in range(j,n): #On calcule les éléments provenant de liens récursifs, à l'instant précédent.
-                c += self.liens[i][j]*self.couches[i]
+                a = self.liens[i][j]*self.couches[i]
+                c += a
                
             for i in range(j): #on calcule leséléments du même instant, qui vienne du dessous de l'arbre
                 c += self.liens[i][j]*self.couches[i]
@@ -65,6 +66,7 @@ class Phenotype(object):
     def draw(self, pos):
         x,y = pos
         screen = pygame.display.get_surface()
+        f = pygame.font.SysFont(pygame.font.get_default_font(), 20)
         for i in range(len(self.couches)):
             for j in range(len(self.couches)):
                 m = self.liens[i][j]
@@ -95,8 +97,10 @@ class Phenotype(object):
             for j in range(l):
                 x, y = self.posToCoord((i,j), pos)
                 color = (66, 134, 244)
-                pygame.gfxdraw.aacircle(screen, x, y, 20, color)
-#                pygame.gfxdraw.filled_circle(screen, x, y, 10, color)
+                pygame.gfxdraw.aacircle(screen, x, y, 10, color)
+                t = f.render(str(self.couches[i][j][0])[:4], True, (0,0,0))
+                screen.blit(t, (x+20,y-5))
+                pygame.gfxdraw.filled_circle(screen, x, y, 10, color)
                 
 #a = phenotype(2,1)
 #

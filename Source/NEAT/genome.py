@@ -18,35 +18,24 @@ import pygame
 from math import *
 
 class Genome():
-    def __init__(self, *args, **kwargs):
-        if kwargs['generer']:
-            self.nb_entree = args[0]            
-            self.nb_sortie = args[1]
-            self.indiceInnov = 0
-            self.noeuds = []
-            self.entr = []
-            self.sort = []
-            self.connexions = []            
-            
-            for i in range(self.nb_entree):
-                e = Noeud(i, "entree")
-                self.noeuds.append(e)
-                self.entr.append(e)
-            
-            for i in range(self.nb_entree,self.nb_entree + self.nb_sortie):
-                s = Noeud(i, "sortie")
-                self.noeuds.append(s)
-                self.sort.append(s)
-            
-            for i in range(self.nb_entree):
-                for j in range(self.nb_entree, self.nb_entree + self.nb_sortie):
-                    self.indiceInnov += 1
-                    self.connexions.append(Connexion(i,j,norm.rvs(),self.indiceInnov))
-            
-        else:
-            self.connexions = args[0]
-            self.noeuds = args[1]
-            self.indiceInnov = len(self.noeuds)    
+    def __init__(self, nb_entrees, nb_sorties):
+        self.nb_entree = nb_entrees            
+        self.nb_sortie = nb_sorties
+        self.connexions = []
+#        for i in range(self.nb_entree):
+#            e = Noeud(i, "entree")
+#            self.noeuds.append(e)
+#            self.entr.append(e)
+#        
+#        for i in range(self.nb_entree,self.nb_entree + self.nb_sortie):
+#            s = Noeud(i, "sortie")
+#            self.noeuds.append(s)
+#            self.sort.append(s)
+        indInnov = 0
+        for i in range(self.nb_entree):
+            for j in range(self.nb_entree, self.nb_entree + self.nb_sortie):
+                self.connexions.append(Connexion(i,j,norm.rvs(),indInnov))
+                indInnov += 1
             
     def __add__(self, mate):
         pass
