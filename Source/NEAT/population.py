@@ -6,23 +6,31 @@ Created on Wed Nov 23 10:47:29 2016
 """
 
 from genome import Genome
+from individu import Individu
 from Noeud import Noeud
 from Connexion import Connexion
 import random as rd
 
 class Population():
     
-    def __init__(self, length):
+    def __init__(self, length, nb_e, nb_s):
         self.length = length
-        self.contenu = []
-        self.noeuds = []
+        self.contenu = [Individu(nb_e,nb_s)]
+        self.nb_e = nb_e
+        self.nb_s = nb_s
+        self.noeuds = [Noeud(i, "entree") for i in range(nb_e)]
+        self.noeuds.extend([Noeud(i,"sortie") for i in range(nb_e, nb_e + nb_s)])
         self.generationCount = 0
-        self.indiceInnovation = 0
-        
-    def genrand(self, max, nb_entr, nb_sort):
-        for i in range (self.length):
-            self.contenu.append(genome([nb_entr, nb_sort], 'generer'))
-        
+        self.indiceInnovation = nb_e*nb_s
+    
+    def mutation_noeud(self, idIndiv):
+        self.indiceInnovation += 1
+    
+    def mutation_lien():
+        pass
+    
+    def evoluer(self):
+        self.generationCount += 1
             
     def fusionrand(self, ind1, ind2):
         f1 = fitness(ind1)

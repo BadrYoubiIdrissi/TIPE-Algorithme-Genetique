@@ -37,19 +37,17 @@ class Phenotype(object):
         # assert len(e) == self.nb_entrees
         n = len(self.couches)
         self.couches[0] = e
-
         for j in range(1,n): #Oncalcule la couches numero j
             c=np.zeros(self.couches[j].shape) #Cette liste vacontenir les valeurs provenant de l'instant d'avant, pour ne pasmodifier les couches existantes
             for i in range(j,n): #On calcule les éléments provenant de liens récursifs, à l'instant précédent.
-                c += self.liens[i][j]*self.couches[i]
-               
+                if type(self.liens[i][j]) != int:
+                    c += self.liens[i][j]*self.couches[i]
+                    
             for i in range(j): #on calcule leséléments du même instant, qui vienne du dessous de l'arbre
-                c += self.liens[i][j]*self.couches[i]
-                print(self.liens[i][j],self.couches[i])
-            
-            print(c)
+                if type(self.liens[i][j]) != int:
+                    c += self.liens[i][j]*self.couches[i]
                 
-            self.couches[j] = c #On somme les deux contributions
+            self.couches[j] = c
             self.couches[j] = sigmoide(self.couches[j])
         self.memoire =True
         
@@ -58,10 +56,7 @@ class Phenotype(object):
         n = len(self.couches)
         for i in range(n):
             self.couches[i] = np.zeros(self.couches[i].shape)
-    
-    def addLayer(self, l):
-        self.couches.append(np.zeros((0,0)))
-    
+            
     def insertNode(self, lay):
         self.couches[lay] = np.append(self.couches[lay],[[0]],0)
         for i in range(len(self.couches)):
@@ -70,13 +65,12 @@ class Phenotype(object):
                     n,h = self.liens[lay][i].shape
                     self.liens[lay][i] = np.c_[self.liens[lay][i], np.zeros((n,1))]
                 else:
-                    self.liens[lay][i] = np.zeros((len(self.couches[i]),len(self.couches[lay])))
-                
-            if type(self.liens[i][lay]) != int:
+                    self.liens[lay][i] = np.mat(np.zeros((len(self.couches[i]),len(self.couches[lay]))))
+            if type(self.liens[i][lay]) != int and i != lay:
                 n,h = self.liens[i][lay].shape
                 self.liens[i][lay] = np.r_[self.liens[i][lay], np.zeros((1, h))]
             else:
-                self.liens[i][lay] = np.zeros((len(self.couches[lay]),len(self.couches[i])))
+                self.liens[i][lay] = np.mat(np.zeros((len(self.couches[lay]),len(self.couches[i]))))
     
     def modifierConnexion(self, k,l, idToPos,poids):
         c1, n1 = idToPos[k]
@@ -90,12 +84,13 @@ class Phenotype(object):
             self.liens[c1][c2] = np.mat(np.zeros((nb_s,nb_e)))
             self.liens[c1][c2][n2,n1] = poids
 
-    def posToCoord(self, posnn, spos, offsetx = 50, offsety = 50):
+    def posToCoord(self, posnn, spos, offsetx = 50, offsety = 30):
         i, j = posnn
         x, y = spos
         return (int(x - (len(self.couches[i])/2 - j)*offsetx),int(y+ offsetx*i))
     
-    def draw(self, pos):
+        
+    def draw(self, pos, posToId = None):
         x,y = pos
         screen = pygame.display.get_surface()
         f = pygame.font.SysFont(pygame.font.get_default_font(), 20)
@@ -133,6 +128,10 @@ class Phenotype(object):
                 t = f.render(str(self.couches[i][j][0])[:4], True, (0,0,0))
                 screen.blit(t, (x+20,y-5))
                 pygame.gfxdraw.filled_circle(screen, x, y, 10, color)
+                if posToId != None :
+                    tid = f.render(str(posToId((i,j))), True, (0,0,0))
+                    screen.blit(tid, (x-4,y-5))
+            
                 
 #a = phenotype(2,1)
 #
