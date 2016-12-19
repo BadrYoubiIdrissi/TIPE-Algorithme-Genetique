@@ -124,6 +124,7 @@ class Genome():
         self.indiceInnov += 1
         self.connexions.append(Connexion(entree, sortie, norm.rvs(), self.indiceInnov))
             
-            
+    def ajouterConnexion(self, entree, sortie, poids, innov):
+        self.connexions.append(Connexion(entree,sortie,poids,innov))
             
             

@@ -20,54 +20,78 @@ class Individu():
         self.nb_s = nb_sorties
         self.genome = Genome(self.nb_e,self.nb_s)
         self.phenotype = Phenotype(self.nb_e,self.nb_s)
+        #On initialise ici la table idToPos qui fera le lien entre le genome et le phenotype
+        #On ajoute au début les entrées et les sorties
         self.idToPos = [(0,i) for i in range(self.nb_e)]
         self.idToPos.extend([(1,j) for j in range(self.nb_s)])
+        #On met les valeurs de poids de genome dans le phenotype
         for c in self.genome.connexions:
             k, l = self.idToPos[c.sortie][1], self.idToPos[c.entree][1]
             self.phenotype.liens[0][1][k,l] = c.poids
     
-    def add_node(self, k,l, p1, p2):
-        c1, n1 = self.idToPos[k]
-        c2, n2 = self.idToPos[l]
-        print(c1,n1)
-        print(c2,n2)
+    def add_key(self, couche, num):
+        """Met à jour la table idToPos en ajoutant un noeud qui 
+        sera en la couche et dont le numéro est num"""
+        self.idToPos.append((couche, num))
+    
+    def insert_layer(self, couche):
+        """Insère une couche aprés la couche indiqué en paramètre"""
+        #Décale tous les position d'une couche
+        for i in range(len(self.idToPos)):
+                if self.idToPos[i][0] > couche:
+                    n, h = self.idToPos[i]
+                    self.idToPos[i] = (n+1,h)
+        #Ajoute une nouvelle couche en inserant de nouvelles matrices liens
+        #On ajoute une ligne et une colonne de liens
+        for e in self.phenotype.liens:
+                e.insert(couche+1,0)
+        self.phenotype.couches.insert(couche+1, np.zeros((1,1)))
+        self.phenotype.liens.insert(couche+1, [0 for i in range(len(self.phenotype.couches))])
+        
+    def add_node(self, con, p1, p2):
+        """Cette fonction prend une connexion déja existante et la remplace par deux
+           nouvelle connexions et un noeud intermédiaire qui occupera la couche milieu si elle existe
+           et créera une nouvelle couche si la connexion relie deux couches succéssives ou la même couche"""
+        #On désactive la connexion précèdente
+        idN1 = con.entree
+        idN2 = con.sortie
+        con.desactiver()
+        #On récupère la position dans le phénotype des deux noeuds précèdemment reliés
+        c1, n1 = self.idToPos[idN1]
+        c2, n2 = self.idToPos[idN2]
+        #Le nouveau noeud aura le prochain identifiant disponible
+        idNouvNoeud = len(self.idToPos)
+        
+        #On a une disjonction de cas selon que les deux noeuds était dans deux couches successifs ou pas
         if abs(c1-c2) >= 2:
+            #Si les deux noeuds ne sont pas dans de ux couches succéssifs alors on met le nouveau noeud 
+            #dans une couche au milieu des deux couches
             m = (c1+c2)//2
-            p = len(self.phenotype.couches[m])+1
-            self.idToPos.append((m, p))
-            nc = np.zeros_like
-            self.phenotype.couches[m] = np.append(self.phenotype.couches[m],[[0]],1)
-            for i in range(len(self.phenotype.couches)):
-                if type(self.phenotype.liens[m][i]) != int and type(self.phenotype.liens[i][m]) != int:
-                    n1,h1 = self.phenotype.liens[m][i].shape
-                    n2,h2 = self.phenotype.liens[i][m].shape
-                    self.phenotype.liens[m][i] = np.c_[self.phenotype.liens[m][i], np.zeros((n1,1))]
-                    self.phenotype.liens[i][m] = np.r_[self.phenotype.liens[i][m], np.zeros((1, h2+1))]
-                else:
-                    self.phenotype.liens[m][i] = np.zeros((len(self.phenotype.couches[i]),len(self.phenotype.couches[m])))
-                    self.phenotype.liens[m][i] = np.zeros((len(self.phenotype.couches[m]),len(self.phenotype.couches[i])))
-                    
-            self.phenotype.liens[c1][m][p-1,n1] = p1
-            self.phenotype.liens[m][c2][n2,p-1] = p2
+            p = len(self.phenotype.couches[m])  
+            #On met à jour la table idToPos
+            self.add_key(m,p)
+            #On insère le noeud dans la couche m
+            self.phenotype.insertNode(m)
+            
+            self.phenotype.modifierConnexion(idN1,idNouvNoeud, self.idToPos,p1)
+            self.phenotype.modifierConnexion(idNouvNoeud, idN2, self.idToPos,p2)
+            self.phenotype.modifierConnexion(idN1, idN2, self.idToPos, 0)
+            
+            self.genome.ajouterConnexion(idN1, idNouvNoeud, p1, 0)
+            self.genome.ajouterConnexion(idNouvNoeud, idN2, p2, 0)
 
         else:
             c = min(c1,c2)
-            for i in range(len(self.idToPos)):
-                if self.idToPos[i][0] > c:
-                    n, h = self.idToPos[i]
-                    self.idToPos[i] = (n+1,h)
-            c1, n1 = self.idToPos[k]
-            c2, n2 = self.idToPos[l]
-            for e in self.phenotype.liens:
-                e.insert(c+1,0)
-            self.phenotype.couches.insert(c+1, np.zeros((1,1)))
-            self.phenotype.liens.insert(c+1, [0 for i in range(len(self.phenotype.couches))])
-            self.phenotype.liens[c1][c+1] = np.zeros((1,len(self.phenotype.couches[c1])))
-            if c1 > 0:
-                self.phenotype.liens[c+1][c1] = np.mat(np.zeros((len(self.phenotype.couches[c1]),1)))
-                
-            self.phenotype.liens[c1][c+1][0,n1] = p1
-            if c2 > 0:            
-                self.phenotype.liens[c+1][c2] = np.mat(np.zeros((len(self.phenotype.couches[c2]),1)))
-                self.phenotype.liens[c+1][c2][n2,0] = p2
-                
+            
+            self.insert_layer(c)
+            self.add_key(c+1, 0)
+            c1, n1 = self.idToPos[idN1]
+            c2, n2 = self.idToPos[idN2]
+
+            self.phenotype.modifierConnexion(idN1, idNouvNoeud, self.idToPos, p1)
+            self.phenotype.modifierConnexion(idNouvNoeud, idN2, self.idToPos, p2)
+            self.phenotype.modifierConnexion(idN1, idN2, self.idToPos, 0)
+            
+            self.genome.ajouterConnexion(idN1, idNouvNoeud, p1, 0)
+            self.genome.ajouterConnexion(idNouvNoeud, idN2, p2, 0)
+   

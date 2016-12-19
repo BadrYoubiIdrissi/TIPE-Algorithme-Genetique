@@ -58,12 +58,43 @@ class Phenotype(object):
         n = len(self.couches)
         for i in range(n):
             self.couches[i] = np.zeros(self.couches[i].shape)
-            
-    def posToCoord(self, posnn, spos, offsetx = 100, offsety = 100):
+    
+    def addLayer(self, l):
+        self.couches.append(np.zeros((0,0)))
+    
+    def insertNode(self, lay):
+        self.couches[lay] = np.append(self.couches[lay],[[0]],0)
+        for i in range(len(self.couches)):
+            if i>0:
+                if type(self.liens[lay][i]) != int:
+                    n,h = self.liens[lay][i].shape
+                    self.liens[lay][i] = np.c_[self.liens[lay][i], np.zeros((n,1))]
+                else:
+                    self.liens[lay][i] = np.zeros((len(self.couches[i]),len(self.couches[lay])))
+                
+            if type(self.liens[i][lay]) != int:
+                n,h = self.liens[i][lay].shape
+                self.liens[i][lay] = np.r_[self.liens[i][lay], np.zeros((1, h))]
+            else:
+                self.liens[i][lay] = np.zeros((len(self.couches[lay]),len(self.couches[i])))
+    
+    def modifierConnexion(self, k,l, idToPos,poids):
+        c1, n1 = idToPos[k]
+        c2, n2 = idToPos[l]
+        assert c2>0, "Ne peut pas faire de lien vers une entrée"
+        if type(self.liens[c1][c2]) != int:
+            self.liens[c1][c2][n2,n1] = poids
+        else:
+            nb_s = len(self.couches[c2])
+            nb_e = len(self.couches[c1])
+            self.liens[c1][c2] = np.mat(np.zeros((nb_s,nb_e)))
+            self.liens[c1][c2][n2,n1] = poids
+
+    def posToCoord(self, posnn, spos, offsetx = 50, offsety = 50):
         i, j = posnn
         x, y = spos
         return (int(x - (len(self.couches[i])/2 - j)*offsetx),int(y+ offsetx*i))
-        
+    
     def draw(self, pos):
         x,y = pos
         screen = pygame.display.get_surface()

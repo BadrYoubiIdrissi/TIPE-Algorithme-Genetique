@@ -24,3 +24,6 @@ class Connexion(object):
     
     def __repr__(self):
         return "Entree : " + str(self.entree)+ " Sortie : " + str(self.sortie) + '\n'
+
+    def desactiver(self):
+        self.activation = False
