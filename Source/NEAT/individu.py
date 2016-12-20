@@ -54,7 +54,7 @@ class Individu():
             if self.idToPos[i] == pos:
                 return i
         
-    def insert_noeud(self, con, p1, p2):
+    def insert_noeud(self, con, p1, p2, innov):
         """Cette fonction prend une connexion déja existante et la remplace par deux
            nouvelle connexions et un noeud intermédiaire qui occupera la couche milieu si elle existe
            et créera une nouvelle couche si la connexion relie deux couches succéssives ou la même couche"""
@@ -83,8 +83,8 @@ class Individu():
             self.phenotype.modifierConnexion(idNouvNoeud, idN2, self.idToPos,p2)
             self.phenotype.modifierConnexion(idN1, idN2, self.idToPos, 0)
             
-            self.genome.ajouterConnexion(idN1, idNouvNoeud, p1, 0)
-            self.genome.ajouterConnexion(idNouvNoeud, idN2, p2, 0)
+            self.genome.ajouterConnexion(idN1, idNouvNoeud, p1, innov)
+            self.genome.ajouterConnexion(idNouvNoeud, idN2, p2, innov+1)
 
         else:
             #On ajoute la nouvelle couche en dessus de la couche en dessous (ie le min)
@@ -99,8 +99,8 @@ class Individu():
             self.phenotype.modifierConnexion(idNouvNoeud, idN2, self.idToPos, p2)
             self.phenotype.modifierConnexion(idN1, idN2, self.idToPos, 0)
             
-            self.genome.ajouterConnexion(idN1, idNouvNoeud, p1, 0)
-            self.genome.ajouterConnexion(idNouvNoeud, idN2, p2, 0)
+            self.genome.ajouterConnexion(idN1, idNouvNoeud, p1, innov)
+            self.genome.ajouterConnexion(idNouvNoeud, idN2, p2, innov+1)
         
         self.phenotype.reinit()
     

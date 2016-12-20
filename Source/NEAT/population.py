@@ -24,7 +24,12 @@ class Population():
         self.indiceInnovation = nb_e*nb_s
     
     def mutation_noeud(self, idIndiv):
-        self.indiceInnovation += 1
+        self.noeuds.append(Noeud(len(self.noeuds), "cachee")) #To be continued
+        con = None
+        p1 = None
+        p2 = None
+        self.contenu[idIndiv].insert_noeud(con, p1, p2, self.indiceInnovation+1)
+        self.indiceInnovation += 2
     
     def mutation_lien():
         pass
