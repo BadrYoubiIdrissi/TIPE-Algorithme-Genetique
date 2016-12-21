@@ -8,9 +8,9 @@ Ceci est un script temporaire.
 class Connexion(object):
     
     """
-    Une connexion relie deux gènes. Elle a donc comme attributs les identifiants de ces deux gènes (entrée et sortie).
+    Une connexion relie deux noeuds. Elle a donc comme attributs les identifiants de ces deux noeuds (entrée et sortie).
     Elle est aussi muni d'un poids, le coefficient par lequel est multiplié la valeur donnée en entrée avant 'être envoyée à la sortie.
-    Enfin, l'innovation est un chiffre permettant de repérer les gènes selon leur ordre d'apparition
+    Enfin, l'innovation est un chiffre permettant de repérer les connexions selon leur ordre d'apparition
     """
     
     def __init__(self, entree, sortie, poids, innovation) :
@@ -23,7 +23,10 @@ class Connexion(object):
         
     
     def __repr__(self):
-        return "Entree : " + str(self.entree)+ " Sortie : " + str(self.sortie) + '\n'
-
+        return "Entree : " + str(self.entree)+ " Sortie : " + str(self.sortie) + " Activation : " + str(self.activation) + " Poids: " + str(self.poids) + '\n'
+    
+    def activer(self):
+            self.activation = True
+            
     def desactiver(self):
         self.activation = False

@@ -13,32 +13,81 @@ from genome import Genome
 from phenotype import Phenotype
 import numpy as np
 import random as rand
+import prob.crossover
+import utilitaires as ut
 
 class Individu():
     
-    def __init__(self, nb_entrees, nb_sorties):
+    def __init__(self, nb_entrees, nb_sorties, generer = True):
         self.nb_e = nb_entrees
         self.nb_s = nb_sorties
-        self.genome = Genome(self.nb_e,self.nb_s)
-        self.phenotype = Phenotype(self.nb_e,self.nb_s)
-        #On initialise ici la table idToPos qui fera le lien entre le genome et le phenotype
-        #On ajoute au début les entrées et les sorties
-        self.idToPos = [(0,i) for i in range(self.nb_e)]
-        self.idToPos.extend([(1,j) for j in range(self.nb_s)])
-        #On met les valeurs de poids de genome dans le phenotype
-        for c in self.genome.connexions:
-            k, l = self.idToPos[c.sortie][1], self.idToPos[c.entree][1]
-            self.phenotype.liens[0][1][k,l] = c.poids
+        self.genome = Genome(self.nb_e,self.nb_s, generer)
+        self.phenotype = Phenotype(self.nb_e,self.nb_s, generer)
+        
+        if generer:
+            #On initialise ici la table idToPos qui fera le lien entre le genome et le phenotype
+            #On ajoute au début les entrées et les sorties
+            self.idToPos = { i : (0,i) for i in range(self.nb_e)}
+            self.idToPos.update({self.nb_e + j : (1,j) for j in range(self.nb_s)})
+            #On met les valeurs de poids de genome dans le phenotype
+            for c in self.genome.connexions:
+                k, l = self.idToPos[c.sortie][1], self.idToPos[c.entree][1]
+                self.phenotype.liens[0][1][k,l] = c.poids
+        else:
+            self.idToPos = {}
+        
     
-    def add_key(self, couche, num):
+    def __add__(self, mate):
+        fils = Individu(self.nb_e, self.nb_s, generer = False)
+        
+        #On fait le croisement des genomes dans un premier temps
+        plusGrdInnov = max(self.genome.connexions[-1].innovation, mate.genome.connexions[-1].innovation)
+        plusFort = self.fitness() > mate.fitness()
+        egal = self.fitness() == mate.fitness()
+        plusFaible = not(plusFort) and not(egal)
+        for i in range(plusGrdInnov+1):
+            selfcon = self.genome.innovToCon(i)
+            matecon = self.genome.innovToCon(i)
+            if selfcon != None and matecon != None:
+                c = ut.randomPick([selfcon, matecon])
+                #Ici on dans le cadre de deux connexions de meme indice d'innov
+                if not(i.activation) or not(j.activation) : 
+                    #On a une probabilité "prob.crossover.activation" d'activer
+                    #les connexions désactivés dans les parents
+                    if rand.random() < prob.crossover.activation :
+                        c.activer()
+                    else : 
+                        c.desactiver()
+                fils.genome.connexions.append(c)
+            #Les cas ici traitent les genes disjoints ou en excès
+            elif selfcon == None:
+                if egal and rand.random() <= 0.5:
+                    fils.genome.connexions.append(matecon)
+                elif plusFaible:
+                    fils.genome.connexions.append(matecon)
+            elif matecon == None:
+                if plusFort:
+                    fils.genome.connexions.append(selfcon)
+                elif egal and rand.random() <= 0.5:
+                        fils.genome.connexions.append(selfcon)
+        
+        #Puis le croisement des phenotypes
+        
+        return fils
+        
+    def fitness(self):
+        return 0
+        
+    def add_key(self, nouvid, couche, num):
         """Met à jour la table idToPos en ajoutant un noeud qui 
         sera en la couche et dont le numéro est num"""
-        self.idToPos.append((couche, num))
+        assert nouvid not in self.idToPos, "Le nouvel identifiant ne doit pas être existent"
+        self.idToPos[nouvid] = (couche, num)
     
     def insert_layer(self, couche):
         """Insère une couche aprés la couche indiqué en paramètre"""
         #Décale tous les position d'une couche
-        for i in range(len(self.idToPos)):
+        for i in self.idToPos:
                 if self.idToPos[i][0] > couche:
                     n, h = self.idToPos[i]
                     self.idToPos[i] = (n+1,h)
@@ -50,11 +99,11 @@ class Individu():
         self.phenotype.liens.insert(couche+1, [0 for i in range(len(self.phenotype.couches))])
     
     def posToId(self, pos):
-        for i in range(len(self.idToPos)):
+        for i in self.idToPos:
             if self.idToPos[i] == pos:
                 return i
         
-    def insert_noeud(self, con, p1, p2, innov):
+    def insert_noeud(self, con, p1, p2, innov, idNouvNoeud):
         """Cette fonction prend une connexion déja existante et la remplace par deux
            nouvelle connexions et un noeud intermédiaire qui occupera la couche milieu si elle existe
            et créera une nouvelle couche si la connexion relie deux couches succéssives ou la même couche"""
@@ -65,8 +114,6 @@ class Individu():
         #On récupère la position dans le phénotype des deux noeuds précèdemment reliés
         c1, n1 = self.idToPos[idN1]
         c2, n2 = self.idToPos[idN2]
-        #Le nouveau noeud aura le prochain identifiant disponible
-        idNouvNoeud = len(self.idToPos)
         
         #On a une disjonction de cas selon que les deux noeuds était dans deux couches successifs ou pas
         if abs(c1-c2) >= 2:
@@ -75,7 +122,7 @@ class Individu():
             m = (c1+c2)//2
             p = len(self.phenotype.couches[m])  
             #On met à jour la table idToPos
-            self.add_key(m,p)
+            self.add_key(idNouvNoeud, m,p)
             #On insère le noeud dans la couche m
             self.phenotype.insertNode(m)
             
@@ -91,7 +138,7 @@ class Individu():
             c = min(c1,c2)
             
             self.insert_layer(c)
-            self.add_key(c+1, 0)
+            self.add_key(idNouvNoeud,c+1, 0)
             c1, n1 = self.idToPos[idN1]
             c2, n2 = self.idToPos[idN2]
 
@@ -105,7 +152,13 @@ class Individu():
         self.phenotype.reinit()
     
     def insert_lien_al(self, poids, innov):
-        e = rand.randint(0, len(self.idToPos)-1)
-        s = rand.randint(self.nb_e, len(self.idToPos)-1)
-        self.phenotype.modifierConnexion(e, s, self.idToPos, poids)
-        self.genome.ajouterConnexion(e,s,poids,innov)
+        if not(self.phenotype.estComplet()):
+            noeuds = self.idToPos.keys()
+            noeudsSansEntree = [i for i in noeuds if (i not in range(self.nb_e))]
+            e, s = ut.randomCoupleIf(noeuds, noeudsSansEntree, self.genome.connexionExiste)
+            self.phenotype.modifierConnexion(e, s, self.idToPos, poids)
+            self.genome.ajouterConnexion(e,s,poids,innov)
+            print(self.phenotype)
+            print(self.genome.connexions)
+    
+    

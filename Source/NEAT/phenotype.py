@@ -8,7 +8,7 @@ import pygame.gfxdraw
 class Phenotype(object):
     
     def __repr__(self):
-        a=self.liens[:,1:]
+        a=[l[1:] for l in self.liens]
         s=""
         for l in a:
             for c in l:
@@ -17,17 +17,19 @@ class Phenotype(object):
             s += '\n\n'
         return s
             
-    def __init__(self, nb_entrees, nb_sorties):
+    def __init__(self, nb_entrees, nb_sorties, generer = True):
 
         self.nb_entrees = nb_entrees
         self.nb_sorties = nb_sorties
         
-        self.liens = [[0, np.mat(np.ones((nb_sorties, nb_entrees)))],
-                      [0, np.mat(np.zeros((nb_sorties, nb_sorties)))]]
-        self.couches= [np.zeros((nb_entrees, 1)), np.zeros((nb_sorties, 1))]
-                       
-        self.noeuds = []
-        
+        if generer:
+            self.liens = [[0, np.mat(np.ones((nb_sorties, nb_entrees)))],
+                          [0, np.mat(np.zeros((nb_sorties, nb_sorties)))]]
+            self.couches= [np.zeros((nb_entrees, 1)), np.zeros((nb_sorties, 1))]
+        else:
+            self.liens = []
+            self.couches = []
+
         self.memoire = False
     
     # Il convient de bien comprendre que la matrice self.liens contient toutes les matrices de transition, qu'elles proviennent ou non d'un lien récurent.
@@ -56,6 +58,19 @@ class Phenotype(object):
         n = len(self.couches)
         for i in range(n):
             self.couches[i] = np.zeros(self.couches[i].shape)
+    
+    def estComplet(self):
+        for i in range(len(self.liens)):
+            for j in range(1,len(self.liens)):
+                if type(self.liens[i][j]) != int:
+                    l,c = self.liens[i][j].shape
+                    for k in range(l):
+                        for h in range(c):
+                            if self.liens[i][j][k,h] == 0:
+                                return False
+                else:
+                    return False
+        return True
             
     def insertNode(self, lay):
         self.couches[lay] = np.append(self.couches[lay],[[0]],0)
