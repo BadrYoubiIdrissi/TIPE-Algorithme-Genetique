@@ -37,8 +37,6 @@ class Population():
     def evoluer(self):
         self.generationCount += 1
             
-    def fusionrand(self, ind1, ind2):
-        pass 
         
         
         

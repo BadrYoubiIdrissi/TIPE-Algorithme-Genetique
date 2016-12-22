@@ -23,7 +23,7 @@ class Connexion(object):
         
     
     def __repr__(self):
-        return "Entree : " + str(self.entree)+ " Sortie : " + str(self.sortie) + " Activation : " + str(self.activation) + " Poids: " + str(self.poids) + '\n'
+        return str(self.entree)+ " -> " + str(self.sortie) + " Actif : " + str(self.activation) + " P : " + str(self.poids) + '\n'
     
     def activer(self):
             self.activation = True

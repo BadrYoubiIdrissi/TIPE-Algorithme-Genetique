@@ -30,13 +30,17 @@ def randomPick(liste):
 def randomCoupleIf(range1, range2, nottest):
     a = randomPick(range1)
     b = randomPick(range2)
-    i = 0
     while nottest(a,b):
         a = randomPick(range1)
         b = randomPick(range2)
-        print(i, (a,b))
-        i+=1
-        if i == 10000:
-            print(range1, range2)
-            break
     return (a,b)
+
+def checkCoherence(ind):
+    for c in ind.genome.connexions:
+        ce,ne = ind.idToPos[c.entree]
+        cs,ns = ind.idToPos[c.sortie]
+        if c.activation:
+            assert ind.phenotype.liens[ce][cs][ns,ne] == c.poids,"Lien activé mais non cohérent : " \
+            + str(c) + "couche e :" + str(ce) + "couche s : " + str(cs) \
+            + "ne: " + str(ne) + "ns: "+ str(ns) + '\n' + str(ind.phenotype) 
+            

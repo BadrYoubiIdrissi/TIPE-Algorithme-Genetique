@@ -8,13 +8,12 @@ import pygame.gfxdraw
 class Phenotype(object):
     
     def __repr__(self):
-        a=[l[1:] for l in self.liens]
         s=""
-        for l in a:
-            for c in l:
-                s += c.__repr__()
-                s += '\t'
-            s += '\n\n'
+        for i in range(len(self.liens)):
+            for j in range(1,len(self.liens)):
+                s += str((i,j)) + '\n'
+                s += self.liens[i][j].__repr__()
+                s += '\n\n'
         return s
             
     def __init__(self, nb_entrees, nb_sorties, generer = True):
@@ -75,17 +74,25 @@ class Phenotype(object):
     def insertNode(self, lay):
         self.couches[lay] = np.append(self.couches[lay],[[0]],0)
         for i in range(len(self.couches)):
-            if i>0:
-                if type(self.liens[lay][i]) != int:
-                    n,h = self.liens[lay][i].shape
-                    self.liens[lay][i] = np.c_[self.liens[lay][i], np.zeros((n,1))]
+            if i == lay:
+                if type(self.liens[i][i]) != int:
+                    n,h = self.liens[i][i].shape
+                    self.liens[i][i] = np.r_[self.liens[i][i], np.zeros((1, h))]
+                    self.liens[i][i] = np.c_[self.liens[i][i], np.zeros((n+1, 1))]
                 else:
-                    self.liens[lay][i] = np.mat(np.zeros((len(self.couches[i]),len(self.couches[lay]))))
-            if type(self.liens[i][lay]) != int and i != lay:
-                n,h = self.liens[i][lay].shape
-                self.liens[i][lay] = np.r_[self.liens[i][lay], np.zeros((1, h))]
+                    self.liens[i][i] = np.mat(np.zeros((len(self.couches[i]),len(self.couches[i]))))
             else:
-                self.liens[i][lay] = np.mat(np.zeros((len(self.couches[lay]),len(self.couches[i]))))
+                if i>0: #On ne touche pas au liens vers les entrees
+                    if type(self.liens[lay][i]) != int:
+                        n,h = self.liens[lay][i].shape
+                        self.liens[lay][i] = np.c_[self.liens[lay][i], np.zeros((n,1))]
+                    else:
+                        self.liens[lay][i] = np.mat(np.zeros((len(self.couches[i]),len(self.couches[lay]))))
+                if type(self.liens[i][lay]) != int:
+                    n,h = self.liens[i][lay].shape
+                    self.liens[i][lay] = np.r_[self.liens[i][lay], np.zeros((1, h))]
+                else:
+                    self.liens[i][lay] = np.mat(np.zeros((len(self.couches[lay]),len(self.couches[i]))))
     
     def modifierConnexion(self, k,l, idToPos,poids):
         c1, n1 = idToPos[k]
@@ -145,8 +152,7 @@ class Phenotype(object):
                 pygame.gfxdraw.filled_circle(screen, x, y, 10, color)
                 if posToId != None :
                     tid = f.render(str(posToId((i,j))), True, (0,0,0))
-                    screen.blit(tid, (x-4,y-5))
-            
+                    screen.blit(tid, (x-4,y-5))            
                 
 #a = phenotype(2,1)
 #

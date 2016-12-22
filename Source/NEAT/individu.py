@@ -155,10 +155,19 @@ class Individu():
         if not(self.phenotype.estComplet()):
             noeuds = self.idToPos.keys()
             noeudsSansEntree = [i for i in noeuds if (i not in range(self.nb_e))]
-            e, s = ut.randomCoupleIf(noeuds, noeudsSansEntree, self.genome.connexionExiste)
+            e = ut.randomPick(noeuds)
+            s = ut.randomPick(noeudsSansEntree)
+            c = self.genome.entreeSortieToCon(e,s)
+            while c != None and c.activation:
+                e = ut.randomPick(noeuds)
+                s = ut.randomPick(noeudsSansEntree)
+                c = self.genome.entreeSortieToCon(e,s)
+                
             self.phenotype.modifierConnexion(e, s, self.idToPos, poids)
-            self.genome.ajouterConnexion(e,s,poids,innov)
-            print(self.phenotype)
-            print(self.genome.connexions)
+            if c != None:
+                c.activer()
+                c.poids = poids
+            else:
+                self.genome.ajouterConnexion(e,s,poids,innov)
     
     
