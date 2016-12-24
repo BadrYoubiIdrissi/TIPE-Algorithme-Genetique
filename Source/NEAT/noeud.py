@@ -17,3 +17,4 @@ class Noeud(object) :
     def __init__(self, id, fonction):
         self.id = id
         self.fonction = fonction
+

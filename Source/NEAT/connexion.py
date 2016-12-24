@@ -29,3 +29,5 @@ class Connexion(object):
             
     def desactiver(self):
         self.activation = False
+
+        

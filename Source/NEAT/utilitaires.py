@@ -35,6 +35,12 @@ def randomCoupleIf(range1, range2, nottest):
         b = randomPick(range2)
     return (a,b)
 
+def carrePlusProche(n):
+    i = 0
+    while i**2 < n:
+        i+=1
+    return i
+    
 def checkCoherence(ind):
     for c in ind.genome.connexions:
         ce,ne = ind.idToPos[c.entree]
@@ -43,4 +49,4 @@ def checkCoherence(ind):
             assert ind.phenotype.liens[ce][cs][ns,ne] == c.poids,"Lien activé mais non cohérent : " \
             + str(c) + "couche e :" + str(ce) + "couche s : " + str(cs) \
             + "ne: " + str(ne) + "ns: "+ str(ns) + '\n' + str(ind.phenotype) 
-            
+

@@ -9,9 +9,12 @@ Un genome est un contennaire de connexions
 C'est sur cet objet que va opérer les opérateurs génétiques
 """
 
-import prob.mutation
-from scipy.stats import bernoulli, norm
+
 from connexion import Connexion
+from scipy.stats import bernoulli, norm
+
+import random as rand
+import prob.mutation
 import pygame
 
 class Genome():
@@ -24,15 +27,8 @@ class Genome():
         indInnov = 0
         for i in range(self.nb_entree):
             for j in range(self.nb_entree, self.nb_entree + self.nb_sortie):
-                self.connexions[indInnov] = Connexion(i,j,1)
+                self.connexions[indInnov] = Connexion(i,j,norm.rvs())
                 indInnov += 1
-            
-    def weight_mutation(self):
-        for c in self.connexions:
-            if bernoulli.rvs(prob.mutation.poids_radical):
-                c.poids = norm.rvs()
-            else:
-                c.poids  += 0.1*norm.rvs()
     
     def ajouterConnexion(self, entree, sortie, poids,  innov):
         assert innov not in self.connexions, "Ce numero d'innovation est déja attribué : " + str(innov) + " Connexion :" + str(Connexion(entree,sortie,poids)) 
@@ -67,7 +63,5 @@ class Genome():
             screen.blit(t,(x+60*i+13, y+20))
             screen.blit(tinnov, (x+60*i+25, y+7))
             i+=1
-            
-            
             
             

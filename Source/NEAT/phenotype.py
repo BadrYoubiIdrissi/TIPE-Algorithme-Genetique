@@ -103,8 +103,6 @@ class Phenotype(object):
     def modifierConnexion(self, k,l, idToPos,poids):
         c1, n1 = idToPos[k]
         c2, n2 = idToPos[l]
-        lie = self.liens
-        cou = self.couches
         assert c2>0, "Ne peut pas faire de lien vers une entrée"
         if type(self.liens[c1][c2]) != int:
             self.liens[c1][c2][n2,n1] = poids
@@ -161,20 +159,5 @@ class Phenotype(object):
                 if posToId != None :
                     tid = f.render(str(posToId((i,j))), True, (0,0,0))
                     screen.blit(tid, (x-4,y-5))            
-                
-#a = phenotype(2,1)
-#
-#m01 = np.matrix('1 0')
-#m02 = np.matrix('0 0.01')
-#m12 = np.matrix('0.0001')
-#m21 = np.matrix('0.5')
-#
-#a.liens = [[0, m01, m02],
-#           [0, 0,   m12],
-#           [0, m21 , 0]]
-#
-#a.couches = [np.zeros((3,1)), np.zeros((1,1)), np.zeros((1,1))]
 
-
-        
     
