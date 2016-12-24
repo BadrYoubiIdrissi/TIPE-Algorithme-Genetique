@@ -1,6 +1,5 @@
 import numpy as np
-from math import exp
-from utilitaires import *
+import utilitaires as ut
 import pygame
 import pygame.gfxdraw
 
@@ -16,25 +15,24 @@ class Phenotype(object):
                 s += '\n\n'
         return s
             
-    def __init__(self, nb_entrees, nb_sorties, generer = True):
+    def __init__(self, nb_entrees, nb_sorties):
 
         self.nb_entrees = nb_entrees
         self.nb_sorties = nb_sorties
-        
-        if generer:
-            self.liens = [[0, np.mat(np.ones((nb_sorties, nb_entrees)))],
-                          [0, np.mat(np.zeros((nb_sorties, nb_sorties)))]]
-            self.couches= [np.zeros((nb_entrees, 1)), np.zeros((nb_sorties, 1))]
-        else:
-            self.liens = []
-            self.couches = []
+        self.liens = []
+        self.couches = []
 
         self.memoire = False
     
+    def generer(self):
+        self.liens = [[0, np.mat(np.ones((self.nb_sorties, self.nb_entrees)))],
+                      [0, np.mat(np.zeros((self.nb_sorties, self.nb_sorties)))]]
+        self.couches= [np.zeros((self.nb_entrees, 1)), np.zeros((self.nb_sorties, 1))]
+        
     # Il convient de bien comprendre que la matrice self.liens contient toutes les matrices de transition, qu'elles proviennent ou non d'un lien récurent.
     # Les matrices correspondant à un lien récurrent sous situées sous la diagonale de self.liens
     
-    def eval(self, e):
+    def evaluate(self, e):
         # assert len(e) == self.nb_entrees
         n = len(self.couches)
         self.couches[0] = e
@@ -49,7 +47,7 @@ class Phenotype(object):
                     c += self.liens[i][j]*self.couches[i]
                 
             self.couches[j] = c
-            self.couches[j] = sigmoide(self.couches[j])
+            self.couches[j] = ut.sigmoide(self.couches[j])
         self.memoire =True
         
     def reinit(self):
@@ -72,7 +70,8 @@ class Phenotype(object):
         return True
             
     def insertNode(self, lay):
-        self.couches[lay] = np.append(self.couches[lay],[[0]],0)
+        longCouche = self.couches[lay].shape[0]
+        self.couches[lay] = np.zeros((longCouche+1,1))
         for i in range(len(self.couches)):
             if i == lay:
                 if type(self.liens[i][i]) != int:
@@ -94,9 +93,18 @@ class Phenotype(object):
                 else:
                     self.liens[i][lay] = np.mat(np.zeros((len(self.couches[lay]),len(self.couches[i]))))
     
+    def insertLayer(self, couche):
+        #On ajoute une ligne et une colonne de liens
+        for e in self.liens:
+                e.insert(couche+1,0)
+        self.couches.insert(couche+1, np.zeros((0,0)))
+        self.liens.insert(couche+1, [0 for i in range(len(self.couches))])
+                    
     def modifierConnexion(self, k,l, idToPos,poids):
         c1, n1 = idToPos[k]
         c2, n2 = idToPos[l]
+        lie = self.liens
+        cou = self.couches
         assert c2>0, "Ne peut pas faire de lien vers une entrée"
         if type(self.liens[c1][c2]) != int:
             self.liens[c1][c2][n2,n1] = poids
@@ -135,11 +143,11 @@ class Phenotype(object):
                                                                        posi], 7, (0,0,150))
                                     else:
                                         pygame.gfxdraw.bezier(screen, [posi,
-                                                                       offsetMiddle(posi, posj,25),
+                                                                       ut.offsetMiddle(posi, posj,25),
                                                                        posj], 7, (0,0,150))
                                 elif i > j:                          
                                     pygame.gfxdraw.bezier(screen, [posi,
-                                                                       offsetMiddle(posi, posj,25),
+                                                                       ut.offsetMiddle(posi, posj,25),
                                                                        posj], 7, (0,0,150))
         for i in range(len(self.couches)):
             l = len(self.couches[i])

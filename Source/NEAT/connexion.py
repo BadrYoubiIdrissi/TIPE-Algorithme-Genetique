@@ -13,12 +13,11 @@ class Connexion(object):
     Enfin, l'innovation est un chiffre permettant de repérer les connexions selon leur ordre d'apparition
     """
     
-    def __init__(self, entree, sortie, poids, innovation) :
+    def __init__(self, entree, sortie, poids) :
         
         self.entree = entree
         self.sortie = sortie
         self.poids = poids
-        self.innovation = innovation
         self.activation = True
         
     

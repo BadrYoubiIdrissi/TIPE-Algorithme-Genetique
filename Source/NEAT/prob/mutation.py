@@ -11,8 +11,8 @@ Constantes de mutation
 poids_radical = 0.5
 
 #Probabilités lié à la mutation de connection
-connexion = 1
+connexion = 0.5
 
 #Probabilités lié à la mutation de connection
-noeud = 1
+noeud = 0.5
  

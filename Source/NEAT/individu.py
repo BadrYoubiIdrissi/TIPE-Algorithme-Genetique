@@ -15,30 +15,19 @@ import numpy as np
 import random as rand
 import prob.crossover
 import utilitaires as ut
+from connexion import Connexion
 
 class Individu():
     
-    def __init__(self, nb_entrees, nb_sorties, generer = True):
+    def __init__(self, nb_entrees, nb_sorties):
         self.nb_e = nb_entrees
         self.nb_s = nb_sorties
-        self.genome = Genome(self.nb_e,self.nb_s, generer)
-        self.phenotype = Phenotype(self.nb_e,self.nb_s, generer)
-        
-        if generer:
-            #On initialise ici la table idToPos qui fera le lien entre le genome et le phenotype
-            #On ajoute au début les entrées et les sorties
-            self.idToPos = { i : (0,i) for i in range(self.nb_e)}
-            self.idToPos.update({self.nb_e + j : (1,j) for j in range(self.nb_s)})
-            #On met les valeurs de poids de genome dans le phenotype
-            for c in self.genome.connexions:
-                k, l = self.idToPos[c.sortie][1], self.idToPos[c.entree][1]
-                self.phenotype.liens[0][1][k,l] = c.poids
-        else:
-            self.idToPos = {}
-        
+        self.genome = Genome(self.nb_e,self.nb_s)
+        self.phenotype = Phenotype(self.nb_e,self.nb_s)
+        self.idToPos = {} #Ce tableau fera l'interface entre le genome et l'individu
     
     def __add__(self, mate):
-        fils = Individu(self.nb_e, self.nb_s, generer = False)
+        fils = Individu(self.nb_e, self.nb_s)
         
         #On fait le croisement des genomes dans un premier temps
         plusGrdInnov = max(self.genome.connexions[-1].innovation, mate.genome.connexions[-1].innovation)
@@ -74,6 +63,18 @@ class Individu():
         #Puis le croisement des phenotypes
         
         return fils
+    
+    def generer(self):
+        #On ajoute au début les entrées et les sorties
+        self.idToPos = { i : (0,i) for i in range(self.nb_e)}
+        self.idToPos.update({self.nb_e + j : (1,j) for j in range(self.nb_s)})
+        #On met les valeurs de poids de genome dans le phenotype
+        self.genome.generer()
+        self.phenotype.generer()
+        for innov in self.genome.connexions:
+            c = self.genome.connexions[innov]
+            k, l = self.idToPos[c.sortie][1], self.idToPos[c.entree][1]
+            self.phenotype.liens[0][1][k,l] = c.poids
         
     def fitness(self):
         return 0
@@ -84,7 +85,7 @@ class Individu():
         assert nouvid not in self.idToPos, "Le nouvel identifiant ne doit pas être existent"
         self.idToPos[nouvid] = (couche, num)
     
-    def insert_layer(self, couche):
+    def inserLayer(self, couche):
         """Insère une couche aprés la couche indiqué en paramètre"""
         #Décale tous les position d'une couche
         for i in self.idToPos:
@@ -92,18 +93,19 @@ class Individu():
                     n, h = self.idToPos[i]
                     self.idToPos[i] = (n+1,h)
         #Ajoute une nouvelle couche en inserant de nouvelles matrices liens
-        #On ajoute une ligne et une colonne de liens
-        for e in self.phenotype.liens:
-                e.insert(couche+1,0)
-        self.phenotype.couches.insert(couche+1, np.zeros((1,1)))
-        self.phenotype.liens.insert(couche+1, [0 for i in range(len(self.phenotype.couches))])
+        self.phenotype.insertLayer(couche)
     
     def posToId(self, pos):
         for i in self.idToPos:
             if self.idToPos[i] == pos:
                 return i
-        
-    def insert_noeud(self, con, p1, p2, innov, idNouvNoeud):
+    
+    def insertNoeudCouche(self, couche, idNouvNoeud):
+        assert idNouvNoeud not in self.idToPos, "Noeud déja existant"
+        self.phenotype.insertNode(couche)
+        self.idToPos[idNouvNoeud] = (couche, len(self.phenotype.couches[couche])-1)
+    
+    def insertNoeud(self, con, p1, p2, innov, idNouvNoeud):
         """Cette fonction prend une connexion déja existante et la remplace par deux
            nouvelle connexions et un noeud intermédiaire qui occupera la couche milieu si elle existe
            et créera une nouvelle couche si la connexion relie deux couches succéssives ou la même couche"""
@@ -138,7 +140,7 @@ class Individu():
             c = min(c1,c2)
             
             self.insert_layer(c)
-            self.add_key(idNouvNoeud,c+1, 0)
+            self.insert_noeud_couche(c+1, idNouvNoeud)
             c1, n1 = self.idToPos[idN1]
             c2, n2 = self.idToPos[idN2]
 
@@ -151,7 +153,7 @@ class Individu():
         
         self.phenotype.reinit()
     
-    def insert_lien_al(self, poids, innov):
+    def connexionPossible(self):
         if not(self.phenotype.estComplet()):
             noeuds = self.idToPos.keys()
             noeudsSansEntree = [i for i in noeuds if (i not in range(self.nb_e))]
@@ -162,12 +164,16 @@ class Individu():
                 e = ut.randomPick(noeuds)
                 s = ut.randomPick(noeudsSansEntree)
                 c = self.genome.entreeSortieToCon(e,s)
-                
-            self.phenotype.modifierConnexion(e, s, self.idToPos, poids)
-            if c != None:
-                c.activer()
-                c.poids = poids
+            if c !=None:
+                return c
             else:
-                self.genome.ajouterConnexion(e,s,poids,innov)
+                return Connexion(e, s, 1)
+    
+    def insertLien(self, c, innov):      
+        self.phenotype.modifierConnexion(c.entree, c.sortie, self.idToPos, c.poids)
+        if not(c.activation):
+            c.activer()
+        else:
+            self.genome.ajouter(c, innov)
     
     
