@@ -3,7 +3,7 @@
 Created on Wed Oct 12 11:36:14 2016
 
 @author: Badr Youbi Idrissi
- """
+"""
 
 import pygame
 import pygame.gfxdraw
@@ -20,12 +20,11 @@ screen = pygame.display.set_mode((860, 600), DOUBLEBUF and RESIZABLE)
 pygame.display.set_caption("Test")
 f = pygame.font.SysFont(pygame.font.get_default_font(), 20)
 clock = pygame.time.Clock()
-nb_e = 3
-nb_s = 2
+nb_e = 2
+nb_s = 1
 
 pop = Population(10, nb_e, nb_s)
 pop.generer()
-ind = Individu(nb_e,nb_s, 3)
 while True:
     clock.tick()
     screen.fill((255,255,255))
@@ -39,8 +38,8 @@ while True:
             pygame.quit()
             exit()
         elif event.type == KEYDOWN and event.key == K_UP:
-            ind = pop.crossover(pop.contenu[0], pop.contenu[1])
-            print(pop.distance(pop.contenu[0], pop.contenu[1]))
+            for ind in pop.contenu:
+                print(ind.calculateFitness())
         elif event.type == KEYDOWN and event.key == K_DOWN:
             pop.evoluer()
             os.system('cls')
@@ -51,8 +50,6 @@ while True:
     if pressed[K_SPACE]:
         pop.evoluer()
     
-    pop.evaluate(np.ones((3,1)))
     pop.draw()
-    ind.genome.draw((50,300))
     pygame.display.flip()
  

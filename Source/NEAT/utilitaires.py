@@ -38,6 +38,9 @@ def randomCoupleIf(range1, range2, nottest):
         i += 1
     return (a,b)
 
+def entree(str):
+    return np.array(np.mat(str))
+    
 def bestIndividual(l):
     best = l[0]
     for i in l:

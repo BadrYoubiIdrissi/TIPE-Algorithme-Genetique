@@ -13,7 +13,6 @@ from genome import Genome
 from phenotype import Phenotype
 from connexion import Connexion
 from scipy.stats import bernoulli, norm
-import random
 
 import prob.crossover
 import utilitaires as ut
@@ -51,9 +50,26 @@ class Individu():
             self.phenotype.liens[0][1][k,l] = c.poids
     
     def calculateFitness(self):
-        self.fitness = random.randint(0,100)
-        return random.randint(0,100)
+        
+        self.phenotype.evaluate(ut.entree('0; 0'))
+        e1 = self.output()[0]
+        self.phenotype.evaluate(ut.entree('0; 1'))
+        e2 = self.output()[0]
+        self.phenotype.evaluate(ut.entree('1; 0'))
+        e3 = self.output()[0]
+        self.phenotype.evaluate(ut.entree('1; 1'))
+        e4 = self.output()[0]
 
+        somErreur = abs(e1) + abs(e2-1.0) + abs(e3 - 1.0) + abs(e4)
+
+        self.fitness = (4-somErreur)**2
+
+        return self.fitness
+
+    def output(self):
+        l = [self.idToPos[i] for i in range(self.nb_e, self.nb_e+self.nb_s)]
+        return [self.phenotype.couches[e[0]][e[1]][0] for e in l]
+        
     def rawFitness(self):
         if self.fitness == None:
             self.fitness = self.calculateFitness()

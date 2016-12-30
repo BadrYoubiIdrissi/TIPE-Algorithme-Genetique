@@ -17,3 +17,6 @@ youngFitMod = 1.0
 oldFitMod = 1.0
 
 percentageBest = 0.2
+
+nbSpeciesTarget = 5
+distanceThresholdMod = 0.3

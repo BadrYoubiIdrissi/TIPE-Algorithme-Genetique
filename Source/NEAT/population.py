@@ -32,7 +32,8 @@ class Population():
         self.generationCount = 0
         self.indiceInnovation = 0
         self.lastIndId = length
-        self.lasEspId = 0
+        self.lastEspId = 0
+        self.averageFitness = None
         self.historique = []
         self.especes = []
         """Cette liste contiendra les différentes opérations génétiques structurelles
@@ -138,28 +139,15 @@ class Population():
                 2-On sépare la population en espèces
                 3-On vide le contenu et on garde la dérnière génération
                 4-On reproduit les espèces"""
-        #Etape 1:
-
-        #Etape 2:
-        for i in self.contenu:
-            i.calculateFitness()
-        for e in self.especes:
-            e.ajusterFitness()
-            e.calculateBest()
-        #Etape 3
 
         if self.generationCount>0:
-            self.oldGen = self.contenu   #Attention: J'essaye d'éviter les deepcopy donc oldGen peut changer
+            indivAl = self.tournamentSelection(self.contenu)
             self.contenu = []
-            aveFit = ut.average([ind.sharedFitness for ind in self.oldGen])
-            indivAl = self.tournamentSelection(self.oldGen)
         else:
-            aveFit = ut.average([ind.rawFitness() for ind in self.contenu])
             indivAl = ut.randomPick(self.contenu)
 
-        #Etape 4
         for e in self.especes:
-            tailleProgeniture = int(floor(self.length*e.averageFitness()/aveFit))
+            tailleProgeniture = int(floor(self.length*e.averageFitness()/self.averageFitness))
 
             for i in range(tailleProgeniture):
                 if len(self.contenu) < self.length:
@@ -185,7 +173,7 @@ class Population():
                     
         assert self.length - len(self.contenu) <= 1, "La population est morte"
         if self.length - len(self.contenu) == 1:
-            self.contenu.append(indivAl)
+            self.contenu.append(deepcopy(indivAl))
         
         for i in range(len(self.especes)):
             if e.age > 1:
@@ -196,11 +184,26 @@ class Population():
                     e.stagnationAge = 0
                 if e.stagnationAge >= constants.speciation.stagnationAgeThresh:
                     del self.especes[i]
+        
         for e in self.especes:
             e.flush()
-        self.updateEspeces()
-        self.generationCount += 1
             
+        self.updateEspeces()
+        if len(self.especes) > constants.speciation.nbSpeciesTarget:
+            constants.speciation.distThreshold += constants.speciation.distanceThresholdMod
+        elif len(self.especes) < constants.speciation.nbSpeciesTarget:
+            constants.speciation.distThreshold -= constants.speciation.distanceThresholdMod
+        for i in self.contenu:
+            i.calculateFitness()
+        for e in self.especes:
+            e.ajusterFitness()
+            e.calculateBest()
+        
+        self.updateAverageFitness()
+        self.generationCount += 1
+    
+    def updateAverageFitness(self):
+        self.averageFitness = ut.average([ind.sharedFitness for ind in self.contenu])
         
     def updateEspeces(self):
         for ind in ut.shuffle(self.contenu):
@@ -212,8 +215,10 @@ class Population():
                     break
                 i += 1
             if i == len(self.especes):
-                self.especes.append(Espece(deepcopy(ind), self.lasEspId))
-                self.lasEspId += 1
+                self.especes.append(Espece(ind, self.lastEspId))
+                self.lastEspId += 1
+                print(self.lastEspId)
+                print(self.especes)
         i = 0
         while i < len(self.especes):
             if self.especes[i].contenu == []:

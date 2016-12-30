@@ -7,12 +7,13 @@ Created on Sun Dec 25 11:26:04 2016
 
 import constants
 import utilitaires as ut
+from copy import deepcopy
 
 class Espece():
     def __init__(self, archetype, espId):
         self.id = espId
         self.leader = archetype
-        self.archetype = archetype
+        self.archetype = deepcopy(archetype)
         self.contenu = [archetype]
         self.best = [archetype]
         self._bestLastFitness = None
@@ -20,7 +21,7 @@ class Espece():
         self.stagnationAge = 0
     
     def __repr__(self):
-        s = "Individus:"
+        s = "Espece"+ str(self.id) + " :"
         for i in self.contenu:
             s += (" " + str(i.id))
         s += "\nBest: "+ str(self.leader.id)
@@ -39,7 +40,7 @@ class Espece():
         return len(self.contenu)
     
     def flush(self):
-        self.archetype = self.leader
+        self.archetype = deepcopy(self.leader)
         self._bestLastFitness = self.leader.sharedFitness
         self.contenu = []
         self.age += 1
