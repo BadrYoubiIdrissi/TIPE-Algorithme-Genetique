@@ -12,8 +12,8 @@ poids_radical = 0.25
 poids = 0.1
 
 #Probabilités lié à la mutation de connection
-connexion = 0.1
+connexion = 0.05
 
 #Probabilités lié à la mutation de connection
-noeud = 0.05
+noeud = 0.03
  

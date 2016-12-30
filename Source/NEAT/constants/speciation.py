@@ -5,11 +5,11 @@ Created on Sun Dec 25 08:50:19 2016
 @author: byoub
 """
 
-coExcess = 2
-coDisjoint = 2
-coWeights = 1
+coExcess = 1.0
+coDisjoint = 1.0
+coWeights = 0.4
 
-distThreshold = 6
+distThreshold = 3.0
 ageThreshold = 15
 stagnationAgeThresh = 30
 

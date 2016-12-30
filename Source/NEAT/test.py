@@ -13,6 +13,7 @@ from individu import Individu
 from phenotype import Phenotype
 from population import Population
 import utilitaires as ut
+import os
                            
 pygame.init()
 screen = pygame.display.set_mode((860, 600), DOUBLEBUF and RESIZABLE)
@@ -42,6 +43,7 @@ while True:
             print(pop.distance(pop.contenu[0], pop.contenu[1]))
         elif event.type == KEYDOWN and event.key == K_DOWN:
             pop.evoluer()
+            os.system('cls')
             for e in pop.especes:
                 print(e)
         elif event.type == VIDEORESIZE:

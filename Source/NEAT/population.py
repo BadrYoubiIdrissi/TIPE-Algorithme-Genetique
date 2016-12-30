@@ -139,34 +139,39 @@ class Population():
                 3-On vide le contenu et on garde la dérnière génération
                 4-On reproduit les espèces"""
         #Etape 1:
-        for e in self.especes:
-            e.flush()
+
         #Etape 2:
         for i in self.contenu:
             i.calculateFitness()
-        self.updateEspeces()
         for e in self.especes:
             e.ajusterFitness()
             e.calculateBest()
         #Etape 3
-        self.oldGen = self.contenu   #Attention: J'essaye d'éviter les deepcopy donc oldGen peut changer
-        self.contenu = []
-        if self.generationCount == 0: indivAl = ut.randomPick(self.oldGen)
-        if self.generationCount>0:  indivAl = self.tournamentSelection(self.oldGen)
-        aveFit = ut.average([ind.sharedFitness for ind in self.oldGen])
+
+        if self.generationCount>0:
+            self.oldGen = self.contenu   #Attention: J'essaye d'éviter les deepcopy donc oldGen peut changer
+            self.contenu = []
+            aveFit = ut.average([ind.sharedFitness for ind in self.oldGen])
+            indivAl = self.tournamentSelection(self.oldGen)
+        else:
+            aveFit = ut.average([ind.rawFitness() for ind in self.contenu])
+            indivAl = ut.randomPick(self.contenu)
+
         #Etape 4
         for e in self.especes:
             tailleProgeniture = int(floor(self.length*e.averageFitness()/aveFit))
 
             for i in range(tailleProgeniture):
-                if len(self.contenu) <= self.length:
+                if len(self.contenu) < self.length:
                     if i == 0:
-                        enfant = e.leader
-                    elif len(e.contenu) > 1:
+                        enfant = deepcopy(e.leader)
+                    elif len(e.best) > 1:
                         par1, par2 = e.parents()
                         enfant = self.crossover(par1, par2)
                     else:
-                        enfant = e.individu()
+                        enfant = deepcopy(e.individu())
+                        enfant.id = self.lastIndId
+                        self.lastIndId += 1
                         
                     enfant.mutationPoids()
                     if bernoulli.rvs(prob.mutation.connexion):
@@ -191,6 +196,8 @@ class Population():
                     e.stagnationAge = 0
                 if e.stagnationAge >= constants.speciation.stagnationAgeThresh:
                     del self.especes[i]
+        for e in self.especes:
+            e.flush()
         self.updateEspeces()
         self.generationCount += 1
             
@@ -205,7 +212,7 @@ class Population():
                     break
                 i += 1
             if i == len(self.especes):
-                self.especes.append(Espece(ind, self.lasEspId))
+                self.especes.append(Espece(deepcopy(ind), self.lasEspId))
                 self.lasEspId += 1
         i = 0
         while i < len(self.especes):

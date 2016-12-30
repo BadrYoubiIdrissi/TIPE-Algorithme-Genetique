@@ -51,6 +51,7 @@ class Individu():
             self.phenotype.liens[0][1][k,l] = c.poids
     
     def calculateFitness(self):
+        self.fitness = random.randint(0,100)
         return random.randint(0,100)
 
     def rawFitness(self):
