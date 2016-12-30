@@ -53,15 +53,17 @@ class Genome():
         i = 0
         for innov in self.connexions:
             c = self.connexions[innov]
-            pygame.draw.rect(screen, (0,0,0), pygame.Rect(x+60*i, y, 60, 40), 3)
+            pygame.draw.rect(screen, (0,0,0), pygame.Rect(x+70*i, y, 70, 50), 3)
             if c.activation:
                 color = (0,0,0)
             else:
                 color = (255,0,0)
             t = fon.render(str(c.entree)+" -> "+str(c.sortie), True, color)
             tinnov = fon.render(str(innov), True, (0,0,0))
-            screen.blit(t,(x+60*i+13, y+20))
-            screen.blit(tinnov, (x+60*i+25, y+7))
+            tpoids = fon.render("p:"+str(c.poids)[:4], True, (0,0,0))
+            screen.blit(t,(x+70*i+13, y+20))
+            screen.blit(tinnov, (x+70*i+25, y+7))
+            screen.blit(tpoids, (x+70*i+13, y+35))
             i+=1
             
             

@@ -13,59 +13,30 @@ from genome import Genome
 from phenotype import Phenotype
 from connexion import Connexion
 from scipy.stats import bernoulli, norm
+import random
 
-import random as rand
 import prob.crossover
 import utilitaires as ut
 
 class Individu():
     
-    def __init__(self, nb_entrees, nb_sorties):
+    def __init__(self, nb_entrees, nb_sorties, idInd):
         self.nb_e = nb_entrees
         self.nb_s = nb_sorties
+        self.id = idInd
+        self.espece = None
         self.genome = Genome(self.nb_e,self.nb_s)
         self.phenotype = Phenotype(self.nb_e,self.nb_s)
         self.idToPos = {} #Ce tableau fera l'interface entre le genome et l'individu
+        self.fitness = None
+        self.sharedFitness = None
     
-    def __add__(self, mate):
-        fils = Individu(self.nb_e, self.nb_s)
-        
-        #On fait le croisement des genomes dans un premier temps
-        plusGrdInnov = max(max(self.genome.connexions), max(mate.genome.connexions))
-        plusFort = self.fitness() > mate.fitness()
-        
-        if plusFort:
-            fils.phenotype = self.phenotype
-        else:
-            fils.phenotype = mate.phenotype
-        
-        for i in range(plusGrdInnov+1):
-            selfcon = self.genome[i]
-            matecon = self.genome[i]
-            if selfcon != None and matecon != None:
-                c = ut.randomPick([selfcon, matecon])
-                #Ici on dans le cadre de deux connexions de meme indice d'innov
-                if not(selfcon.activation) or not(matecon.activation) : 
-                    #On a une probabilité "prob.crossover.activation" d'activer
-                    #les connexions désactivés dans les parents
-                    if rand.random() < prob.crossover.activation :
-                        c.activer()
-                    else : 
-                        c.desactiver()
-                fils.genome.connexions[i] = c
-                fils.phenotype.modifierConnexion(c.entree, c.sortie, self.idToPos, c.poids)
-            #Les cas ici traitent les genes disjoints ou en excès
-            elif selfcon == None:
-                if not(plusFort):
-                    fils.genome.connexions[i] = matecon
-                    fils.phenotype.modifierConnexion(matecon.entree, matecon.sortie, self.idToPos, matecon.poids)
-            elif matecon == None:
-                if plusFort:
-                    fils.genome.connexions[i] = selfcon
-                    fils.phenotype.modifierConnexion(selfcon.entree, selfcon.sortie, self.idToPos, selfcon.poids)
+    def __repr__(self):
+        s = "Ind "+str(self.id) + ":"
+        s += "\nFitness: "+ str(self.fitness)
+        s += "\nShared Fitness: "+ str(self.sharedFitness)
+        return s
 
-        fils.phenotype.reinit()
-        return fils
     
     def generer(self):
         #On ajoute au début les entrées et les sorties
@@ -78,9 +49,14 @@ class Individu():
             c = self.genome.connexions[innov]
             k, l = self.idToPos[c.sortie][1], self.idToPos[c.entree][1]
             self.phenotype.liens[0][1][k,l] = c.poids
-        
-    def fitness(self):
-        return 0
+    
+    def calculateFitness(self):
+        return random.randint(0,100)
+
+    def rawFitness(self):
+        if self.fitness == None:
+            self.fitness = self.calculateFitness()
+        return self.fitness
         
     def add_key(self, nouvid, couche, num):
         """Met à jour la table idToPos en ajoutant un noeud qui 
@@ -173,12 +149,14 @@ class Individu():
                 return Connexion(e, s, 1)
     
     def mutationPoids(self):
-        for c in self.connexions:
-            if bernoulli.rvs(prob.mutation.poids_radical):
-                c.poids = norm.rvs()
-            else:
-                c.poids  += 0.1*norm.rvs()
-            self.phenotype.modifierConnexion(c.entree, c.sortie, self.idToPos, c.poids)
+        for i in self.genome.connexions:
+            c= self.genome.connexions[i]
+            if bernoulli.rvs(prob.mutation.poids):
+                if bernoulli.rvs(prob.mutation.poids_radical):
+                    c.poids = norm.rvs()
+                else:
+                    c.poids  += 0.1*norm.rvs()
+                self.phenotype.modifierConnexion(c.entree, c.sortie, self.idToPos, c.poids)
                 
     def insertLien(self, c, innov):      
         self.phenotype.modifierConnexion(c.entree, c.sortie, self.idToPos, c.poids)

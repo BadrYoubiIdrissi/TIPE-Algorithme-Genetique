@@ -30,10 +30,26 @@ def randomPick(liste):
 def randomCoupleIf(range1, range2, nottest):
     a = randomPick(range1)
     b = randomPick(range2)
+    i = 0
     while nottest(a,b):
+        assert i <= 1e5, "Infinite loop"
         a = randomPick(range1)
         b = randomPick(range2)
+        i += 1
     return (a,b)
+
+def bestIndividual(l):
+    best = l[0]
+    for i in l:
+        if i.fitness > best.fitness:
+            best = i
+    return best         
+
+def average(liste):
+    total = 0
+    for e in liste:
+        total += e
+    return total/len(liste)
 
 def carrePlusProche(n):
     i = 0
@@ -50,3 +66,5 @@ def checkCoherence(ind):
             + str(c) + "couche e :" + str(ce) + "couche s : " + str(cs) \
             + "ne: " + str(ne) + "ns: "+ str(ns) + '\n' + str(ind.phenotype) 
 
+def shuffle(l):
+    return rand.sample(l, len(l))
