@@ -1,6 +1,5 @@
 import numpy as np
-from math import exp
-from utilitaires import *
+import utilitaires as ut
 import pygame
 import pygame.gfxdraw
 
@@ -8,32 +7,32 @@ import pygame.gfxdraw
 class Phenotype(object):
     
     def __repr__(self):
-        a=self.liens[:,1:]
         s=""
-        for l in a:
-            for c in l:
-                s += c.__repr__()
-                s += '\t'
-            s += '\n\n'
+        for i in range(len(self.liens)):
+            for j in range(1,len(self.liens)):
+                s += str((i,j)) + '\n'
+                s += self.liens[i][j].__repr__()
+                s += '\n\n'
         return s
             
     def __init__(self, nb_entrees, nb_sorties):
 
         self.nb_entrees = nb_entrees
         self.nb_sorties = nb_sorties
-        
-        self.liens = [[0, np.mat(np.ones((nb_sorties, nb_entrees)))],
-                      [0, np.mat(np.zeros((nb_sorties, nb_sorties)))]]
-        self.couches= [np.zeros((nb_entrees, 1)), np.zeros((nb_sorties, 1))]
-                       
-        self.noeuds = []
-        
+        self.liens = []
+        self.couches = []
+
         self.memoire = False
     
+    def generer(self):
+        self.liens = [[0, np.mat(np.ones((self.nb_sorties, self.nb_entrees)))],
+                      [0, np.mat(np.zeros((self.nb_sorties, self.nb_sorties)))]]
+        self.couches= [np.zeros((self.nb_entrees, 1)), np.zeros((self.nb_sorties, 1))]
+        
     # Il convient de bien comprendre que la matrice self.liens contient toutes les matrices de transition, qu'elles proviennent ou non d'un lien récurent.
     # Les matrices correspondant à un lien récurrent sous situées sous la diagonale de self.liens
     
-    def eval(self, e):
+    def evaluate(self, e):
         # assert len(e) == self.nb_entrees
         n = len(self.couches)
         self.couches[0] = e
@@ -48,7 +47,7 @@ class Phenotype(object):
                     c += self.liens[i][j]*self.couches[i]
                 
             self.couches[j] = c
-            self.couches[j] = sigmoide(self.couches[j])
+            self.couches[j] = ut.sigmoide(self.couches[j])
         self.memoire =True
         
     def reinit(self):
@@ -56,22 +55,51 @@ class Phenotype(object):
         n = len(self.couches)
         for i in range(n):
             self.couches[i] = np.zeros(self.couches[i].shape)
+    
+    def estComplet(self):
+        for i in range(len(self.liens)):
+            for j in range(1,len(self.liens)):
+                if type(self.liens[i][j]) != int:
+                    l,c = self.liens[i][j].shape
+                    for k in range(l):
+                        for h in range(c):
+                            if self.liens[i][j][k,h] == 0:
+                                return False
+                else:
+                    return False
+        return True
             
     def insertNode(self, lay):
-        self.couches[lay] = np.append(self.couches[lay],[[0]],0)
+        longCouche = self.couches[lay].shape[0]
+        self.couches[lay] = np.zeros((longCouche+1,1))
         for i in range(len(self.couches)):
-            if i>0:
-                if type(self.liens[lay][i]) != int:
-                    n,h = self.liens[lay][i].shape
-                    self.liens[lay][i] = np.c_[self.liens[lay][i], np.zeros((n,1))]
+            if i == lay:
+                if type(self.liens[i][i]) != int:
+                    n,h = self.liens[i][i].shape
+                    self.liens[i][i] = np.r_[self.liens[i][i], np.zeros((1, h))]
+                    self.liens[i][i] = np.c_[self.liens[i][i], np.zeros((n+1, 1))]
                 else:
-                    self.liens[lay][i] = np.mat(np.zeros((len(self.couches[i]),len(self.couches[lay]))))
-            if type(self.liens[i][lay]) != int and i != lay:
-                n,h = self.liens[i][lay].shape
-                self.liens[i][lay] = np.r_[self.liens[i][lay], np.zeros((1, h))]
+                    self.liens[i][i] = np.mat(np.zeros((len(self.couches[i]),len(self.couches[i]))))
             else:
-                self.liens[i][lay] = np.mat(np.zeros((len(self.couches[lay]),len(self.couches[i]))))
+                if i>0: #On ne touche pas au liens vers les entrees
+                    if type(self.liens[lay][i]) != int:
+                        n,h = self.liens[lay][i].shape
+                        self.liens[lay][i] = np.c_[self.liens[lay][i], np.zeros((n,1))]
+                    else:
+                        self.liens[lay][i] = np.mat(np.zeros((len(self.couches[i]),len(self.couches[lay]))))
+                if type(self.liens[i][lay]) != int:
+                    n,h = self.liens[i][lay].shape
+                    self.liens[i][lay] = np.r_[self.liens[i][lay], np.zeros((1, h))]
+                else:
+                    self.liens[i][lay] = np.mat(np.zeros((len(self.couches[lay]),len(self.couches[i]))))
     
+    def insertLayer(self, couche):
+        #On ajoute une ligne et une colonne de liens
+        for e in self.liens:
+                e.insert(couche+1,0)
+        self.couches.insert(couche+1, np.zeros((0,0)))
+        self.liens.insert(couche+1, [0 for i in range(len(self.couches))])
+                    
     def modifierConnexion(self, k,l, idToPos,poids):
         c1, n1 = idToPos[k]
         c2, n2 = idToPos[l]
@@ -104,7 +132,11 @@ class Phenotype(object):
                             if m[k,a] != 0:
                                 posi, posj = self.posToCoord((i,a), pos), self.posToCoord((j,k), pos)
                                 if i < j:
-                                    pygame.draw.aaline(screen, (50,50,50), posi, posj, True)
+                                    if m[k,a] > 0:
+                                        color = (50,50,50)
+                                    else:
+                                        color = (255,0,0)
+                                    pygame.draw.aaline(screen, color, posi, posj, True)
                                 elif i == j:
                                     if k==a:
                                         pygame.gfxdraw.bezier(screen, [posi,
@@ -113,11 +145,11 @@ class Phenotype(object):
                                                                        posi], 7, (0,0,150))
                                     else:
                                         pygame.gfxdraw.bezier(screen, [posi,
-                                                                       offsetMiddle(posi, posj,25),
+                                                                       ut.offsetMiddle(posi, posj,25),
                                                                        posj], 7, (0,0,150))
                                 elif i > j:                          
                                     pygame.gfxdraw.bezier(screen, [posi,
-                                                                       offsetMiddle(posi, posj,25),
+                                                                       ut.offsetMiddle(posi, posj,25),
                                                                        posj], 7, (0,0,150))
         for i in range(len(self.couches)):
             l = len(self.couches[i])
@@ -130,22 +162,6 @@ class Phenotype(object):
                 pygame.gfxdraw.filled_circle(screen, x, y, 10, color)
                 if posToId != None :
                     tid = f.render(str(posToId((i,j))), True, (0,0,0))
-                    screen.blit(tid, (x-4,y-5))
-            
-                
-#a = phenotype(2,1)
-#
-#m01 = np.matrix('1 0')
-#m02 = np.matrix('0 0.01')
-#m12 = np.matrix('0.0001')
-#m21 = np.matrix('0.5')
-#
-#a.liens = [[0, m01, m02],
-#           [0, 0,   m12],
-#           [0, m21 , 0]]
-#
-#a.couches = [np.zeros((3,1)), np.zeros((1,1)), np.zeros((1,1))]
+                    screen.blit(tid, (x-4,y-5))            
 
-
-        
     
