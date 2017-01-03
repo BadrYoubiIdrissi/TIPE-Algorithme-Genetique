@@ -8,7 +8,6 @@ Created on Wed Nov 23 10:47:29 2016
 from individu import Individu
 from noeud import Noeud
 from espece import Espece
-from scipy.stats import bernoulli, norm
 from numpy import inf, floor
 from copy import deepcopy
 from copy import copy
@@ -75,7 +74,7 @@ class Population():
                 if not(ind1con.activation) or not(ind2con.activation) : 
                     #On a une probabilité "prob.crossover.activation" d'activer
                     #les connexions désactivés dans les parents
-                    if bernoulli.rvs(prob.crossover.activation):
+                    if rand.random() < prob.crossover.activation:
                         c.activer()
                     else : 
                         c.desactiver()
@@ -107,18 +106,22 @@ class Population():
     def mutationConnexion(self, ind):
         con = ind.connexionPossible()
         if con != None:
-            if bernoulli.rvs(prob.mutation.recursif):
+            if rand.random() < prob.mutation.recursif:
                 i = 0
                 while not(ind.estRecursive(con)) and i < 10:
                     con = ind.connexionPossible()
+                    if con == None:
+                        return None
                     i += 1
             else:
                 i = 0
-                while ind.estRecursive(con) and i < 100 :
+                while ind.estRecursive(con) and i < 10 :
                     con = ind.connexionPossible()
+                    if con == None:
+                        return None
                     i += 1
-            if i < 100:
-                con.poids = norm.rvs()
+            if i < 10:
+                con.poids = 20*rand.random() - 10
                 for i in range(len(self.historique)):
                     if self.historique[i] == (0,con.entree,con.sortie):
                         ind.insertLien(con, i)
@@ -177,10 +180,10 @@ class Population():
                         self.lastIndId += 1
                         
                     enfant.mutationPoids()
-                    if bernoulli.rvs(prob.mutation.connexion):
+                    if rand.random() < prob.mutation.connexion:
                         self.mutationConnexion(enfant)
                     
-                    if bernoulli.rvs(prob.mutation.noeud):
+                    if rand.random() < prob.mutation.noeud:
                         self.mutationNoeud(enfant)
 
                     self.contenu.append(enfant)
@@ -215,7 +218,7 @@ class Population():
             e.ajusterFitness()
             e.calculateBest()
             
-        self.updateBest()
+#        self.updateBest()
         self.updateAverageFitness()
         self.generationCount += 1
     

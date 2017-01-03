@@ -13,6 +13,7 @@ from genome import Genome
 from phenotype import Phenotype
 from connexion import Connexion
 from scipy.stats import bernoulli, norm
+from temp import entrees
 
 import prob.crossover
 import utilitaires as ut
@@ -52,13 +53,13 @@ class Individu():
     
     def calculateFitness(self):
         
-        self.phenotype.evaluate(ut.entree('1; 0; 0'))
+        self.phenotype.evaluate(entrees[0])
         e1 = self.output()[0][0]
-        self.phenotype.evaluate(ut.entree('1; 0; 1'))
+        self.phenotype.evaluate(entrees[1])
         e2 = self.output()[0][0]
-        self.phenotype.evaluate(ut.entree('1; 1; 0'))
+        self.phenotype.evaluate(entrees[2])
         e3 = self.output()[0][0]
-        self.phenotype.evaluate(ut.entree('1; 1; 1'))
+        self.phenotype.evaluate(entrees[3])
         e4 = self.output()[0][0]
 
         somErreur = abs(e1) + abs(e2-1.0) + abs(e3 - 1.0) + abs(e4)
@@ -158,28 +159,31 @@ class Individu():
     
     def connexionPossible(self):
         if not(self.phenotype.estComplet()):
+            tries = 0
             noeuds = self.idToPos.keys()
             noeudsSansEntree = [i for i in noeuds if (i not in range(self.nb_e))]
             e = ut.randomPick(noeuds)
             s = ut.randomPick(noeudsSansEntree)
             c = self.genome.entreeSortieToCon(e,s)
-            while c != None and c.activation:
+            while tries < 10 and c != None and c.activation:
                 e = ut.randomPick(noeuds)
                 s = ut.randomPick(noeudsSansEntree)
                 c = self.genome.entreeSortieToCon(e,s)
-            if c !=None:
-                return c
-            else:
-                return Connexion(e, s, 1)
+                tries += 1
+            if tries < 10:
+                if c !=None:
+                    return c
+                else:
+                    return Connexion(e, s, 1)
                 
     def mutationPoids(self):
         for i in self.genome.connexions:
             c= self.genome.connexions[i]
-            if bernoulli.rvs(prob.mutation.poids):
-                if bernoulli.rvs(prob.mutation.poids_radical):
+            if rand.random() < prob.mutation.poids:
+                if rand.random() < prob.mutation.poids_radical:
                     c.poids = 20*rand.random() - 10
                 else:
-                    c.poids  += 0.5*norm.rvs()
+                    c.poids  += 0.5*rand.random()
                 self.phenotype.modifierConnexion(c.entree, c.sortie, self.idToPos, c.poids)
                 
     def insertLien(self, c, innov):

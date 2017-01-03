@@ -13,7 +13,6 @@ from individu import Individu
 from phenotype import Phenotype
 from population import Population
 import utilitaires as ut
-import os
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
                            
@@ -25,9 +24,9 @@ clock = pygame.time.Clock()
 nb_e = 3
 nb_s = 1
 
-pop = Population(50, nb_e, nb_s)
+pop = Population(100, nb_e, nb_s)
 pop.generer()
-evol = False
+evol = True
 
 while True:
     clock.tick()
@@ -37,7 +36,7 @@ while True:
     screen.blit(f.render("Fps :"+str(clock.get_fps())[:3],True,(0,0,0)), (0,0))
     screen.blit(f.render("Current generation : " + str(pop.generationCount), True, (0,0,0)), (0,20))
     screen.blit(f.render("Number of species : " + str(len(pop.especes)), True, (0,0,0)), (0,40))
-    if pop.generationCount > 0:
+    if pop.generationCount > 0 and pop.best != []:
         screen.blit(f.render("Best fitness : " + str(pop.best[-1].fitness), True, (0,0,0)), (100,0))
     for event in pygame.event.get():
         if event.type == QUIT:
@@ -58,7 +57,7 @@ while True:
                     
                     
         elif event.type == KEYDOWN and event.key == K_SPACE:
-            evol = not(evol)
+            pop.updateBest()
             
         elif event.type == VIDEORESIZE:
             pygame.display.set_mode((event.w, event.h), DOUBLEBUF and RESIZABLE)
@@ -67,4 +66,5 @@ while True:
     
     pop.draw(f)
     pygame.display.flip()
+            
  
