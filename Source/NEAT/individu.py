@@ -16,6 +16,7 @@ from scipy.stats import bernoulli, norm
 
 import prob.crossover
 import utilitaires as ut
+import random as rand
 
 class Individu():
     
@@ -51,14 +52,14 @@ class Individu():
     
     def calculateFitness(self):
         
-        self.phenotype.evaluate(ut.entree('0; 0'))
-        e1 = self.output()[0]
-        self.phenotype.evaluate(ut.entree('0; 1'))
-        e2 = self.output()[0]
-        self.phenotype.evaluate(ut.entree('1; 0'))
-        e3 = self.output()[0]
-        self.phenotype.evaluate(ut.entree('1; 1'))
-        e4 = self.output()[0]
+        self.phenotype.evaluate(ut.entree('1; 0; 0'))
+        e1 = self.output()[0][0]
+        self.phenotype.evaluate(ut.entree('1; 0; 1'))
+        e2 = self.output()[0][0]
+        self.phenotype.evaluate(ut.entree('1; 1; 0'))
+        e3 = self.output()[0][0]
+        self.phenotype.evaluate(ut.entree('1; 1; 1'))
+        e4 = self.output()[0][0]
 
         somErreur = abs(e1) + abs(e2-1.0) + abs(e3 - 1.0) + abs(e4)
 
@@ -67,8 +68,7 @@ class Individu():
         return self.fitness
 
     def output(self):
-        l = [self.idToPos[i] for i in range(self.nb_e, self.nb_e+self.nb_s)]
-        return [self.phenotype.couches[e[0]][e[1]][0] for e in l]
+        return self.phenotype.couches[-1]
         
     def rawFitness(self):
         if self.fitness == None:
@@ -96,11 +96,16 @@ class Individu():
             if self.idToPos[i] == pos:
                 return i
     
+    def estRecursive(self, con):
+        ce,ne = self.idToPos[con.entree]
+        cs,ns = self.idToPos[con.sortie]
+        return ce >= cs
+                
     def insertNoeudCouche(self, couche, idNouvNoeud):
         assert idNouvNoeud not in self.idToPos, "Noeud déja existant"
         self.phenotype.insertNode(couche)
         self.idToPos[idNouvNoeud] = (couche, len(self.phenotype.couches[couche])-1)
-    
+        
     def insertNoeud(self, con, p1, p2, innov, idNouvNoeud):
         """Cette fonction prend une connexion déja existante et la remplace par deux
            nouvelle connexions et un noeud intermédiaire qui occupera la couche milieu si elle existe
@@ -112,9 +117,11 @@ class Individu():
         #On récupère la position dans le phénotype des deux noeuds précèdemment reliés
         c1, n1 = self.idToPos[idN1]
         c2, n2 = self.idToPos[idN2]
-        
+    
+        assert c2 - c1 > 0, "Un lien recursif ne peut pas etre coupé"     
+
         #On a une disjonction de cas selon que les deux noeuds était dans deux couches successifs ou pas
-        if abs(c1-c2) >= 2:
+        if c2-c1 >= 2:
             #Si les deux noeuds ne sont pas dans de ux couches succéssifs alors on met le nouveau noeud 
             #dans une couche au milieu des deux couches
             m = (c1+c2)//2
@@ -131,7 +138,7 @@ class Individu():
             self.genome.ajouterConnexion(idN1, idNouvNoeud, p1, innov)
             self.genome.ajouterConnexion(idNouvNoeud, idN2, p2, innov+1)
 
-        else:
+        elif c2-c1 == 1:
             #On ajoute la nouvelle couche en dessus de la couche en dessous (ie le min)
             c = min(c1,c2)
             
@@ -145,8 +152,8 @@ class Individu():
             self.phenotype.modifierConnexion(idN1, idN2, self.idToPos, 0)
             
             self.genome.ajouterConnexion(idN1, idNouvNoeud, p1, innov)
-            self.genome.ajouterConnexion(idNouvNoeud, idN2, p2, innov+1)
-        
+            self.genome.ajouterConnexion(idNouvNoeud, idN2, p2, innov+1)    
+            
         self.phenotype.reinit()
     
     def connexionPossible(self):
@@ -164,18 +171,18 @@ class Individu():
                 return c
             else:
                 return Connexion(e, s, 1)
-    
+                
     def mutationPoids(self):
         for i in self.genome.connexions:
             c= self.genome.connexions[i]
             if bernoulli.rvs(prob.mutation.poids):
                 if bernoulli.rvs(prob.mutation.poids_radical):
-                    c.poids = norm.rvs()
+                    c.poids = 20*rand.random() - 10
                 else:
-                    c.poids  += 0.1*norm.rvs()
+                    c.poids  += 0.5*norm.rvs()
                 self.phenotype.modifierConnexion(c.entree, c.sortie, self.idToPos, c.poids)
                 
-    def insertLien(self, c, innov):      
+    def insertLien(self, c, innov):
         self.phenotype.modifierConnexion(c.entree, c.sortie, self.idToPos, c.poids)
         if not(c.activation):
             c.activer()

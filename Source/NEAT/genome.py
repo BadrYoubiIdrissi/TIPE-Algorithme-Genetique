@@ -35,7 +35,7 @@ class Genome():
         self.connexions[innov] = Connexion(entree,sortie,poids)
     
     def ajouter(self, c, innov):
-        assert innov not in self.connexions, "Ce numero d'innovation est déja attribué : " + str(innov) + " Connexion :" + str(Connexion(entree,sortie,poids)) 
+        assert innov not in self.connexions, "Ce numero d'innovation est déja attribué : " + str(innov) + " Connexion :" + str(c) 
         self.connexions[innov] = c
         
     def entreeSortieToCon(self,e,s):

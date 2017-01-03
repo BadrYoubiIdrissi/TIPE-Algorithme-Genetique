@@ -132,7 +132,11 @@ class Phenotype(object):
                             if m[k,a] != 0:
                                 posi, posj = self.posToCoord((i,a), pos), self.posToCoord((j,k), pos)
                                 if i < j:
-                                    pygame.draw.aaline(screen, (50,50,50), posi, posj, True)
+                                    if m[k,a] > 0:
+                                        color = (50,50,50)
+                                    else:
+                                        color = (255,0,0)
+                                    pygame.draw.aaline(screen, color, posi, posj, True)
                                 elif i == j:
                                     if k==a:
                                         pygame.gfxdraw.bezier(screen, [posi,

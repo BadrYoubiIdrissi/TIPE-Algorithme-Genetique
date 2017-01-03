@@ -18,8 +18,7 @@ class Connexion(object):
         self.entree = entree
         self.sortie = sortie
         self.poids = poids
-        self.activation = True
-        
+        self.activation = True        
     
     def __repr__(self):
         return str(self.entree)+ " -> " + str(self.sortie) + " Actif : " + str(self.activation) + " P : " + str(self.poids) + '\n'

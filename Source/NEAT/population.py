@@ -36,6 +36,8 @@ class Population():
         self.averageFitness = None
         self.historique = []
         self.especes = []
+        self.bestDisplay = 1
+        self.best = []
         """Cette liste contiendra les différentes opérations génétiques structurelles
         ce qui nous évitera d'avoir une explosion d'indice d'innovations
         ce tableau contiendra des triplet (type, id noeud entree, id noeud sortie)
@@ -105,18 +107,31 @@ class Population():
     def mutationConnexion(self, ind):
         con = ind.connexionPossible()
         if con != None:
-            con.poids = norm.rvs()
-            for i in range(len(self.historique)):
-                if self.historique[i] == (0,con.entree,con.sortie):
-                    ind.insertLien(con, i)
-                    break
+            if bernoulli.rvs(prob.mutation.recursif):
+                i = 0
+                while not(ind.estRecursive(con)) and i < 10:
+                    con = ind.connexionPossible()
+                    i += 1
             else:
-                ind.insertLien(con, self.indiceInnovation)
-                self.historique.append((0,con.entree, con.sortie))
-                self.indiceInnovation += 1
+                i = 0
+                while ind.estRecursive(con) and i < 100 :
+                    con = ind.connexionPossible()
+                    i += 1
+            if i < 100:
+                con.poids = norm.rvs()
+                for i in range(len(self.historique)):
+                    if self.historique[i] == (0,con.entree,con.sortie):
+                        ind.insertLien(con, i)
+                        break
+                else:
+                    ind.insertLien(con, self.indiceInnovation)
+                    self.historique.append((0,con.entree, con.sortie))
+                    self.indiceInnovation += 1
     
     def mutationNoeud(self, ind):
         con = ut.randomPick(list(ind.genome.connexions.values()))
+        while ind.estRecursive(con):
+            con = ut.randomPick(list(ind.genome.connexions.values()))
         idNouvNoeud = len(self.noeuds)
         for i in range(self.indiceInnovation):
             t1, e1, s1 = self.historique[i]
@@ -189,16 +204,18 @@ class Population():
             e.flush()
             
         self.updateEspeces()
-        if len(self.especes) > constants.speciation.nbSpeciesTarget:
-            constants.speciation.distThreshold += constants.speciation.distanceThresholdMod
-        elif len(self.especes) < constants.speciation.nbSpeciesTarget:
-            constants.speciation.distThreshold -= constants.speciation.distanceThresholdMod
+#        if len(self.especes) > constants.speciation.nbSpeciesTarget:
+#            constants.speciation.distThreshold += constants.speciation.distanceThresholdMod
+#        elif len(self.especes) < constants.speciation.nbSpeciesTarget:
+#            constants.speciation.distThreshold -= constants.speciation.distanceThresholdMod
         for i in self.contenu:
             i.calculateFitness()
+            i.phenotype.reinit()
         for e in self.especes:
             e.ajusterFitness()
             e.calculateBest()
-        
+            
+        self.updateBest()
         self.updateAverageFitness()
         self.generationCount += 1
     
@@ -217,8 +234,6 @@ class Population():
             if i == len(self.especes):
                 self.especes.append(Espece(ind, self.lastEspId))
                 self.lastEspId += 1
-                print(self.lastEspId)
-                print(self.especes)
         i = 0
         while i < len(self.especes):
             if self.especes[i].contenu == []:
@@ -261,7 +276,12 @@ class Population():
             return inf
         else:
             return (c1*E + c2*D)/N + c3*W/nshared
-
+    
+    def updateBest(self):
+        for i in self.contenu:
+            i.calculateFitness()
+        self.best = sorted(self.contenu, key = lambda ind: ind.fitness)[self.length-self.bestDisplay:]
+    
     def evaluate(self, e):
         for ind in self.contenu:
             ind.phenotype.evaluate(e)
@@ -270,21 +290,20 @@ class Population():
         for e in self.especes:
             if ind in e:
                 return e.id
-            
-    def draw(self):
-        n = ut.carrePlusProche(self.length)
+    
+    def draw(self, f):
+        n = ut.carrePlusProche(self.bestDisplay)
         k = 0
         screen = pygame.display.get_surface()
-        f = pygame.font.SysFont(pygame.font.get_default_font(), 20)
         width, height = screen.get_size()
         xstep, ystep = (width/n), (height/n)
         for i in range(n):
             for j in range(n):
-                if k < len(self.contenu):
-                    ind = self.contenu[k]
-                    tesp = f.render("Espece: " + str(self.findEspeces(ind)), True, (0,0,0))
-                    screen.blit(tesp,\
-                                (int(j*xstep+ xstep/2 - tesp.get_width()/2) ,70+ int(i*ystep)))
+                if k < len(self.best):
+                    ind = self.best[k]
+#                    tesp = f.render("Espece: " + str(self.findEspeces(ind)), True, (0,0,0))
+#                    screen.blit(tesp,\
+#                                (int(j*xstep+ xstep/2 - tesp.get_width()/2) ,70+ int(i*ystep)))
                     ind.draw((int(j*xstep+ xstep/2) ,70 + int(i*ystep + 40)))
                     k += 1
             

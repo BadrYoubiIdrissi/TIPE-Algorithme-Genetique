@@ -9,10 +9,11 @@ Constantes de mutation
 
 #Probabilités lié à la mutation de poids
 poids_radical = 0.25
-poids = 0.1
+poids = 0.4
 
 #Probabilités lié à la mutation de connection
-connexion = 0.05
+connexion = 0.2
+recursif = 0.0
 
 #Probabilités lié à la mutation de connection
 noeud = 0.03
