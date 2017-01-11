@@ -13,8 +13,8 @@ distThreshold = 3.0
 ageThreshold = 15
 stagnationAgeThresh = 30
 
-youngFitMod = 1.0
-oldFitMod = 1.0
+youngFitMod = 1.2
+oldFitMod = 0.8
 
 percentageBest = 0.5
 

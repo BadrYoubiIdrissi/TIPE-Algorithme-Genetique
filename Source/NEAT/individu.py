@@ -181,7 +181,7 @@ class Individu():
             c= self.genome.connexions[i]
             if rand.random() < prob.mutation.poids:
                 if rand.random() < prob.mutation.poids_radical:
-                    c.poids = 20*rand.random() - 10
+                    c.poids = 30*rand.random() - 15
                 else:
                     c.poids  += 0.5*rand.random()
                 self.phenotype.modifierConnexion(c.entree, c.sortie, self.idToPos, c.poids)

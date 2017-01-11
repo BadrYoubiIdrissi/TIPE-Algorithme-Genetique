@@ -9,6 +9,7 @@ from individu import Individu
 from noeud import Noeud
 from espece import Espece
 from numpy import inf, floor
+from numpy.random import rand as randMat
 from copy import deepcopy
 from copy import copy
 
@@ -17,6 +18,7 @@ import constants.speciation
 import utilitaires as ut
 import pygame
 import random as rand
+import matplotlib.pyplot as plt
 
 class Population():
     
@@ -35,8 +37,10 @@ class Population():
         self.averageFitness = None
         self.historique = []
         self.especes = []
+        self.histEspeces = []
         self.bestDisplay = 1
         self.best = []
+#        self.especesFig, self.especesAx = plt.subplots(figsize=(20, 20*500/860))
         """Cette liste contiendra les différentes opérations génétiques structurelles
         ce qui nous évitera d'avoir une explosion d'indice d'innovations
         ce tableau contiendra des triplet (type, id noeud entree, id noeud sortie)
@@ -55,7 +59,7 @@ class Population():
         self.lastIndId += 1
         #On fait le croisement des genomes dans un premier temps
         plusGrdInnov = max(max(ind1.genome.connexions), max(ind2.genome.connexions))
-        plusFort = ind1.sharedFitness > ind2.sharedFitness 
+        plusFort = ind1.fitness > ind2.fitness
         if plusFort:
             champ = deepcopy(ind1)
         else:
@@ -121,7 +125,7 @@ class Population():
                         return None
                     i += 1
             if i < 10:
-                con.poids = 20*rand.random() - 10
+                con.poids = 30*rand.random() - 15
                 for i in range(len(self.historique)):
                     if self.historique[i] == (0,con.entree,con.sortie):
                         ind.insertLien(con, i)
@@ -165,7 +169,7 @@ class Population():
             indivAl = ut.randomPick(self.contenu)
 
         for e in self.especes:
-            tailleProgeniture = int(floor(self.length*e.averageFitness()/self.averageFitness))
+            tailleProgeniture = int(1 + floor(self.length*e.averageFitness()/self.averageFitness))
 
             for i in range(tailleProgeniture):
                 if len(self.contenu) < self.length:
@@ -193,15 +197,15 @@ class Population():
         if self.length - len(self.contenu) == 1:
             self.contenu.append(deepcopy(indivAl))
         
-        for i in range(len(self.especes)):
-            if e.age > 1:
-                e = self.especes[i]
-                if e.stagnated():
-                    e.stagnationAge += 1
-                else:
-                    e.stagnationAge = 0
-                if e.stagnationAge >= constants.speciation.stagnationAgeThresh:
-                    del self.especes[i]
+#        for i in range(len(self.especes)):
+#            if e.age > 1:
+#                e = self.especes[i]
+#                if e.stagnated():
+#                    e.stagnationAge += 1
+#                else:
+#                    e.stagnationAge = 0
+#                if e.stagnationAge >= constants.speciation.stagnationAgeThresh:
+#                    del self.especes[i]
         
         for e in self.especes:
             e.flush()
@@ -217,7 +221,7 @@ class Population():
         for e in self.especes:
             e.ajusterFitness()
             e.calculateBest()
-            
+        
 #        self.updateBest()
         self.updateAverageFitness()
         self.generationCount += 1
@@ -231,21 +235,24 @@ class Population():
             while i < len(self.especes):
                 if self.distance(ind, self.especes[i].archetype) <= constants.speciation.distThreshold:
                     self.especes[i].add(ind)
-                    ind.espece = i
                     break
                 i += 1
             if i == len(self.especes):
-                self.especes.append(Espece(ind, self.lastEspId))
+                nouvE = Espece(ind, self.lastEspId, self.generationCount)
+                self.especes.append(nouvE)
+#                self.histEspeces.append((randMat(1,3),lambda:nouvE.evolPrcnt))
                 self.lastEspId += 1
         i = 0
         while i < len(self.especes):
             if self.especes[i].contenu == []:
                 del self.especes[i]
             else:
-                for ind in self.especes[i].contenu:
-                    ind.espece = i
                 i +=1
-            
+        
+        for e in self.especes:
+            e.evolPrcnt.append(e.size()*100/self.length)
+
+
     def distance(self, ind1, ind2):
         innovind1 = max(ind1.genome.connexions)
         innovind2 = max(ind2.genome.connexions)
@@ -269,8 +276,7 @@ class Population():
         c1 = constants.speciation.coExcess
         c2 = constants.speciation.coDisjoint
         c3 = constants.speciation.coWeights
-        if self.length >= 20:   N = self.length
-        else: N = 1
+        N = self.length
 #        print("Excess :", E)
 #        print("Disjoint :", D)
 #        print("Average weight diff :", W/nshared)
@@ -294,12 +300,37 @@ class Population():
             if ind in e:
                 return e.id
     
+    def getBestFitness(self):
+        if self.best != []:
+            return self.best[-1].fitness, self.best[-1].sharedFitness
+    
+    def getBestSharedFitness(self):
+        mx = 0
+        for i in self.contenu:
+            if i.sharedFitness != None and i.sharedFitness >= mx:
+                mx = i.sharedFitness
+        return mx
+                
     def draw(self, f):
         n = ut.carrePlusProche(self.bestDisplay)
         k = 0
         screen = pygame.display.get_surface()
         width, height = screen.get_size()
         xstep, ystep = (width/n), (height/n)
+        
+        l = [0 for _ in range(self.generationCount)]
+        
+        for e in self.histEspeces:
+            for i in range(len(l)):
+                l[i] = l[i] + e[1]()[i]
+            self.especesAx.fill_between(range(self.generationCount),0, l, color = e[0])
+        
+#        self.especesFig.canvas.draw()
+#        size = self.especesFig.get_size_inches()*self.especesFig.dpi
+#        f = pygame.image.fromstring(self.especesFig.canvas.tostring_argb() , size.astype(int) , 'ARGB', False)
+##        f = pygame.transform.scale(f, (width, 300))
+#        screen.blit(f, (0,height-500))
+        
         for i in range(n):
             for j in range(n):
                 if k < len(self.best):

@@ -12,6 +12,7 @@ from pygame.locals import *
 from individu import Individu
 from phenotype import Phenotype
 from population import Population
+from datadisplay import DataDisplay
 import utilitaires as ut
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
@@ -24,20 +25,22 @@ clock = pygame.time.Clock()
 nb_e = 3
 nb_s = 1
 
-pop = Population(100, nb_e, nb_s)
+pop = Population(50, nb_e, nb_s)
 pop.generer()
-evol = True
+
+status = DataDisplay((0,0), padding = 20)
+status.add("FPS", lambda : clock.get_fps())
+status.add("Current generation", lambda : pop.generationCount)
+status.add("Number of species", lambda : len(pop.especes))
+status.add("Best fitness", pop.getBestFitness)
+status.add("Best shared fitness", pop.getBestSharedFitness)
+
+evol = False
 
 while True:
     clock.tick()
     screen.fill((255,255,255))
-    pressed = pygame.key.get_pressed()
 
-    screen.blit(f.render("Fps :"+str(clock.get_fps())[:3],True,(0,0,0)), (0,0))
-    screen.blit(f.render("Current generation : " + str(pop.generationCount), True, (0,0,0)), (0,20))
-    screen.blit(f.render("Number of species : " + str(len(pop.especes)), True, (0,0,0)), (0,40))
-    if pop.generationCount > 0 and pop.best != []:
-        screen.blit(f.render("Best fitness : " + str(pop.best[-1].fitness), True, (0,0,0)), (100,0))
     for event in pygame.event.get():
         if event.type == QUIT:
             pygame.quit()
@@ -54,17 +57,29 @@ while True:
             ax = fig.gca(projection='3d')
             surf = ax.plot_surface(X, Y, Z)
             plt.show()
-                    
-                    
-        elif event.type == KEYDOWN and event.key == K_SPACE:
-            pop.updateBest()
+        
+        elif event.type == KEYDOWN and event.key == K_DOWN:
+            l = [pop.contenu[i].fitness for i in range(pop.length)]
+            l2 = [pop.contenu[i].sharedFitness for i in range(pop.length)]
+            plt.plot(range(pop.length), l)
+            plt.plot(range(pop.length), l2)
+            plt.show()
+                 
+        elif event.type == KEYDOWN and event.key == K_e:
+            evol = not(evol)
             
         elif event.type == VIDEORESIZE:
             pygame.display.set_mode((event.w, event.h), DOUBLEBUF and RESIZABLE)
+
+        
     if evol:
         pop.evoluer()
+        if (pop.generationCount % 10 == 0):
+            pop.updateBest()
+            
     
-    pop.draw(f)
+    pop.draw(status.police)
+    status.draw()
     pygame.display.flip()
             
  

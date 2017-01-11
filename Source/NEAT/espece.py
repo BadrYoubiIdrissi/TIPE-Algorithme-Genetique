@@ -10,16 +10,16 @@ import utilitaires as ut
 from copy import deepcopy
 
 class Espece():
-    def __init__(self, archetype, espId):
+    def __init__(self, archetype, espId, genCount):
         self.id = espId
         self.leader = archetype
         self.archetype = deepcopy(archetype)
         self.contenu = [archetype]
         self.best = [archetype]
+        self.evolPrcnt = [0 for _ in range(genCount)]
         self._bestLastFitness = None
         self.age = 0
-        self.stagnationAge = 0
-    
+        self.stagnationAge = 0    
     def __repr__(self):
         s = "Espece"+ str(self.id) + " :"
         for i in self.contenu:
