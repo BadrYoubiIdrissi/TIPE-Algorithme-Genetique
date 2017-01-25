@@ -58,6 +58,13 @@ class Espece():
             total += ind.sharedFitness
         return total/self.size()
         
+    def averageRawFitness(self):
+        total = 0
+        for ind in self.contenu:
+            total += ind.fitness
+        return total/self.size()
+
+        
     def ajusterFitness(self):
         if self.age > constants.speciation.ageThreshold:
             fitnessModify = constants.speciation.oldFitMod
@@ -67,7 +74,7 @@ class Espece():
             ind.sharedFitness = ind.rawFitness()*fitnessModify/self.size()
     
     def calculateBest(self):
-        self.best = [ind for ind in self.contenu if ind.sharedFitness >= constants.speciation.percentageBest*self.averageFitness()]
+        self.best = [ind for ind in self.contenu if ind.fitness >= constants.speciation.percentageBest*self.averageRawFitness()]
         
     def individu(self):
         return ut.randomPick(self.best)

@@ -16,7 +16,7 @@ stagnationAgeThresh = 30
 youngFitMod = 1.2
 oldFitMod = 0.8
 
-percentageBest = 0.5
+percentageBest = 0.3
 
 nbSpeciesTarget = 5
 distanceThresholdMod = 0.1

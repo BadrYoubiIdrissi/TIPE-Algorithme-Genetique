@@ -3,6 +3,8 @@
 Created on Wed Nov 23 10:47:29 2016
 
 @author: Thomas Guilmeau
+    def __init__(self, length, nb_e, nb_s):
+        self.length = length
 """
 
 from individu import Individu
@@ -59,7 +61,7 @@ class Population():
         self.lastIndId += 1
         #On fait le croisement des genomes dans un premier temps
         plusGrdInnov = max(max(ind1.genome.connexions), max(ind2.genome.connexions))
-        plusFort = ind1.fitness > ind2.fitness
+        plusFort = ind1.sharedFitness > ind2.sharedFitness
         if plusFort:
             champ = deepcopy(ind1)
         else:
@@ -169,7 +171,7 @@ class Population():
             indivAl = ut.randomPick(self.contenu)
 
         for e in self.especes:
-            tailleProgeniture = int(1 + floor(self.length*e.averageFitness()/self.averageFitness))
+            tailleProgeniture = int(1 + floor(self.length*e.averageRawFitness()/self.averageFitness))
 
             for i in range(tailleProgeniture):
                 if len(self.contenu) < self.length:
@@ -191,7 +193,7 @@ class Population():
                         self.mutationNoeud(enfant)
 
                     self.contenu.append(enfant)
-            e.lastBestFitness = e.leader.sharedFitness
+            e.lastBestFitness = e.leader.fitness
                     
         assert self.length - len(self.contenu) <= 1, "La population est morte"
         if self.length - len(self.contenu) == 1:
@@ -227,7 +229,7 @@ class Population():
         self.generationCount += 1
     
     def updateAverageFitness(self):
-        self.averageFitness = ut.average([ind.sharedFitness for ind in self.contenu])
+        self.averageFitness = ut.average([ind.fitness for ind in self.contenu])
         
     def updateEspeces(self):
         for ind in ut.shuffle(self.contenu):

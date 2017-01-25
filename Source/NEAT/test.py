@@ -25,7 +25,7 @@ clock = pygame.time.Clock()
 nb_e = 3
 nb_s = 1
 
-pop = Population(50, nb_e, nb_s)
+pop = Population(10, nb_e, nb_s)
 pop.generer()
 
 status = DataDisplay((0,0), padding = 20)
@@ -34,6 +34,7 @@ status.add("Current generation", lambda : pop.generationCount)
 status.add("Number of species", lambda : len(pop.especes))
 status.add("Best fitness", pop.getBestFitness)
 status.add("Best shared fitness", pop.getBestSharedFitness)
+status.add("Average fitness", lambda : pop.averageFitness)
 
 evol = False
 
@@ -46,7 +47,7 @@ while True:
             pygame.quit()
             exit()
         elif event.type == KEYDOWN and event.key == K_UP:
-            nbPoints = 50
+            nbPoints = 100
             X,Y = np.meshgrid(np.linspace(0,1,nbPoints),np.linspace(0,1,nbPoints))
             Z = np.zeros((nbPoints,nbPoints))
             for i in range(nbPoints):
